@@ -1,0 +1,128 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Notebook colors */
+  --notebook-cream: #faf8f3;
+  --notebook-beige: #f5f1e8;
+  --notebook-paper: #fefcf8;
+  --notebook-line: #e8e4d9;
+  --paper-texture: #f9f7f2;
+  
+  /* Tech accents */
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #a78bfa;
+  
+  /* Text colors */
+  --text-primary: #2d2a24;
+  --text-secondary: #4a453d;
+  --text-muted: #6b665c;
+  
+  /* Academia colors */
+  --academia-gold: #d4af37;
+  --academia-sage: #9caf88;
+  --academia-rose: #d4a5a5;
+  
+  /* Doodle colors */
+  --doodle-red: #dc3545;
+  --doodle-blue: #4a90e2;
+  --doodle-green: #6bcf7f;
+  --doodle-purple: #9b59b6;
+  
+  --border-color: rgba(99, 102, 241, 0.15);
+  --glow-color: rgba(99, 102, 241, 0.2);
+  --shadow-soft: rgba(0, 0, 0, 0.08);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--notebook-paper);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    /* Subtle texture */
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.02) 0%, transparent 50%),
+    /* Paper texture */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.01) 2px,
+      rgba(0, 0, 0, 0.01) 4px
+    ),
+    /* Base color */
+    var(--notebook-paper);
+  background-size: 100% 100%, 100% 100%, 100% 4px, 100% 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    /* Subtle geometric pattern */
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z' fill='none' stroke='%23e8e4d9' stroke-width='0.5' opacity='0.3'/%3E%3C/svg%3E"),
+    /* Subtle dots */
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23e8e4d9' opacity='0.2'/%3E%3C/svg%3E");
+  background-size: 200px 200px, 80px 80px;
+  background-position: 0 0, 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* Doodle decorations */
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--notebook-beige);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+  opacity: 0.8;
+}
+
+/* Selection */
+::selection {
+  background: var(--academia-gold);
+  color: var(--text-primary);
+  opacity: 0.3;
+}
