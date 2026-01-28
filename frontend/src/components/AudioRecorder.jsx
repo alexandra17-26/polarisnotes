@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import './AudioRecorder.css';
 
 function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProcessingStop, isProcessing }) {
@@ -124,7 +124,7 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       formData.append('noteMode', noteMode);
 
       console.log('Sending audio to server...');
-      const response = await axios.post('/api/transcribe/upload', formData, {
+      const response = await api.post('/api/transcribe/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

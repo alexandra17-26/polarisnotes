@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import './NotesDisplay.css';
 
 function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpdateNote, insights }) {
@@ -153,7 +153,7 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
                 onClick={async () => {
                   setSaving(true);
                   try {
-                    await axios.put(`/api/notes/${noteId}`, { notes: editedNotes });
+                    await api.put(`/api/notes/${noteId}`, { notes: editedNotes });
                     if (onUpdateNote) onUpdateNote({ ...notes, notes: editedNotes });
                     setIsEditing(false);
                   } catch (error) {
@@ -246,7 +246,7 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
                   // If we have a noteId, fetch full note data for better formatting
                   if (noteId) {
                     try {
-                      const response = await axios.get(`/api/notes/${noteId}`);
+                      const response = await api.get(`/api/notes/${noteId}`);
                       const note = response.data.note;
                       const noteInsights = response.data.insights;
                       

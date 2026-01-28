@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import './ManualNotes.css';
 
 function ManualNotes({ onNotesGenerated, onProcessingStart, onProcessingStop }) {
@@ -19,7 +19,7 @@ function ManualNotes({ onNotesGenerated, onProcessingStart, onProcessingStop }) 
 
     try {
       // Save the manual notes directly without transcription
-      const response = await axios.post('/api/notes', {
+      const response = await api.post('/api/notes', {
         title: title || `Manual Note ${new Date().toLocaleString()}`,
         notes: manualNotes,
         transcription: null, // No transcription for manual notes

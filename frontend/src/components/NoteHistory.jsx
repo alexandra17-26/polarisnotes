@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import './NoteHistory.css';
 
 function NoteHistory({ onSelectNote, selectedNoteId }) {
@@ -19,7 +19,7 @@ function NoteHistory({ onSelectNote, selectedNoteId }) {
       if (searchQuery) params.search = searchQuery;
       if (category) params.category = category;
       
-      const response = await axios.get('/api/notes', { params });
+      const response = await api.get('/api/notes', { params });
       setNotes(response.data.notes || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
@@ -32,7 +32,7 @@ function NoteHistory({ onSelectNote, selectedNoteId }) {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this note?')) {
       try {
-        await axios.delete(`/api/notes/${id}`);
+        await api.delete(`/api/notes/${id}`);
         fetchNotes();
         if (selectedNoteId === id) {
           onSelectNote(null);

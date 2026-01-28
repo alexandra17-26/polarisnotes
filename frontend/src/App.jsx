@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import Header from './components/Header';
 import AudioRecorder from './components/AudioRecorder';
 import NoteModeSelector from './components/NoteModeSelector';
@@ -26,9 +26,8 @@ function App() {
 
   const fetchModes = async () => {
     try {
-      const response = await fetch('/api/modes');
-      const data = await response.json();
-      setModes(data.modes);
+      const response = await api.get('/api/modes');
+      setModes(response.data.modes);
     } catch (error) {
       console.error('Error fetching modes:', error);
     }
@@ -49,7 +48,7 @@ function App() {
 
   const fetchNoteInsights = async (noteId) => {
     try {
-      const response = await axios.get(`/api/notes/${noteId}`);
+      const response = await api.get(`/api/notes/${noteId}`);
       if (response.data.insights) {
         setInsights(response.data.insights);
       }

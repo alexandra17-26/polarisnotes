@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import './CustomModes.css';
 
 function CustomModes({ onSelectCustomMode }) {
@@ -18,7 +18,7 @@ function CustomModes({ onSelectCustomMode }) {
 
   const fetchCustomModes = async () => {
     try {
-      const response = await axios.get('/api/custom-modes');
+      const response = await api.get('/api/custom-modes');
       setModes(response.data.modes || []);
     } catch (error) {
       console.error('Error fetching custom modes:', error);
@@ -28,7 +28,7 @@ function CustomModes({ onSelectCustomMode }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/custom-modes', formData);
+      await api.post('/api/custom-modes', formData);
       setFormData({ name: '', description: '', prompt: '', writing_style: '' });
       setShowForm(false);
       fetchCustomModes();
@@ -42,7 +42,7 @@ function CustomModes({ onSelectCustomMode }) {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this custom mode?')) {
       try {
-        await axios.delete(`/api/custom-modes/${id}`);
+        await api.delete(`/api/custom-modes/${id}`);
         fetchCustomModes();
       } catch (error) {
         console.error('Error deleting custom mode:', error);
