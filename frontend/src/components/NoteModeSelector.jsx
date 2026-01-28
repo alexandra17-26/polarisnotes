@@ -14,11 +14,12 @@ function NoteModeSelector({ modes, selectedMode, onModeChange }) {
             className={`mode-card ${selectedMode === mode.id ? 'active' : ''}`}
             onClick={() => onModeChange(mode.id)}
           >
-            <div className="mode-icon">
+            <div className={`mode-icon ${mode.id === 'bullet' || mode.id === 'notes-only' ? 'icon-large' : ''}`}>
               {mode.id === 'summary' && '✎'}
               {mode.id === 'detailed' && '◉'}
-              {mode.id === 'bullet' && '○'}
+              {mode.id === 'bullet' && '•'}
               {mode.id === 'action-items' && '◈'}
+              {mode.id === 'notes-only' && '○'}
               {mode.id === 'transcript' && '◐'}
             </div>
             <div className="mode-info">

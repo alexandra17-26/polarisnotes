@@ -40,5 +40,27 @@
       "Importance of considering long-term and short-term implications in military strategies",
       "Critics of Machiavelli promoted long-term thinking as an alternative to immoral realism"
     ]
+  },
+  {
+    "note_id": 3,
+    "topics": [
+      "testing functionality of notes-only app",
+      "Polaris Ideas class project"
+    ],
+    "action_items": [
+      {
+        "task": "Complete project",
+        "assignee": "Team or individual",
+        "deadline": "Tomorrow"
+      }
+    ],
+    "dates": [
+      "tomorrow"
+    ],
+    "key_points": [
+      "Testing functionality of notes-only app in note mode",
+      "Project is for Polaris Ideas class, section 003",
+      "Project deadline is tomorrow"
+    ]
   }
 ]

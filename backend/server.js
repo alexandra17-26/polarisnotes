@@ -106,10 +106,15 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
       console.warn('File extension may not be recognized, but proceeding with upload');
     }
 
-    // Transcribe audio
-    console.log('Starting transcription...');
-    const transcription = await transcribeAudio(filePath);
-    console.log('Transcription completed');
+    // Transcribe audio (skip if notes-only mode)
+    let transcription = null;
+    if (noteMode !== 'notes-only') {
+      console.log('Starting transcription...');
+      transcription = await transcribeAudio(filePath);
+      console.log('Transcription completed');
+    } else {
+      console.log('Skipping transcription for notes-only mode');
+    }
 
     // Generate notes based on mode
     console.log('Generating notes...');
@@ -124,31 +129,42 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
       }
     }
     
-    const notes = await generateNotes(transcription, noteMode || 'detailed', 3, customPrompt);
+    // For notes-only mode, we still need to transcribe but won't show it
+    // We'll transcribe internally but mark it as hidden
+    let transcriptionForNotes = transcription;
+    if (noteMode === 'notes-only' && !transcription) {
+      console.log('Transcribing for notes generation (hidden)...');
+      transcriptionForNotes = await transcribeAudio(filePath);
+    }
+    
+    const notes = await generateNotes(transcriptionForNotes || transcription, noteMode || 'detailed', 3, customPrompt);
     console.log('Notes generated');
 
     // Clean up uploaded file
     await fs.remove(filePath);
 
-    // Save note to database
+    // Save note to database (don't save transcript for notes-only mode)
     const noteId = notesDb.saveNote({
       notes,
-      transcription,
+      transcription: noteMode === 'notes-only' ? null : transcription,
       mode: noteMode || 'detailed'
     });
 
-    // Generate insights in the background
-    generateInsights(transcription, notes).then(insights => {
-      if (insights) {
-        notesDb.saveNoteInsights(noteId, insights);
-      }
-    }).catch(err => {
-      console.error('Error generating insights:', err);
-    });
+    // Generate insights in the background (use transcription if available)
+    const insightsSource = transcriptionForNotes || transcription;
+    if (insightsSource) {
+      generateInsights(insightsSource, notes).then(insights => {
+        if (insights) {
+          notesDb.saveNoteInsights(noteId, insights);
+        }
+      }).catch(err => {
+        console.error('Error generating insights:', err);
+      });
+    }
 
     res.json({
       success: true,
-      transcription,
+      transcription: noteMode === 'notes-only' ? null : transcription,
       notes,
       mode: noteMode || 'detailed',
       noteId
@@ -246,6 +262,11 @@ app.get('/api/modes', async (req, res) => {
         id: 'action-items',
         name: 'Action Items',
         description: 'Focus on tasks and action items'
+      },
+      {
+        id: 'notes-only',
+        name: 'Notes Only',
+        description: 'Generate notes without transcript'
       },
       {
         id: 'transcript',

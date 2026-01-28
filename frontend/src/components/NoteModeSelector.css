@@ -84,6 +84,18 @@
   opacity: 0.6;
   color: var(--text-secondary);
   font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1;
+}
+
+/* Make smaller icons appear larger */
+.mode-icon.icon-large {
+  font-size: 2.2rem;
+  transform: scale(1.2);
 }
 
 .mode-info {

@@ -46,20 +46,22 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
         Notes
       </h2>
       
-      <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'notes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('notes')}
-        >
-          Generated Notes
-        </button>
-        <button
-          className={`tab ${activeTab === 'transcript' ? 'active' : ''}`}
-          onClick={() => setActiveTab('transcript')}
-        >
-          Full Transcript
-        </button>
-      </div>
+      {transcription && (
+        <div className="tabs">
+          <button
+            className={`tab ${activeTab === 'notes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notes')}
+          >
+            Generated Notes
+          </button>
+          <button
+            className={`tab ${activeTab === 'transcript' ? 'active' : ''}`}
+            onClick={() => setActiveTab('transcript')}
+          >
+            Full Transcript
+          </button>
+        </div>
+      )}
 
       <div className="notes-content">
         {activeTab === 'notes' ? (
