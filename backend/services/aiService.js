@@ -68,13 +68,13 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
       console.log(`Generating notes, mode: ${mode} (attempt ${attempt}/${retries})`);
       
       const prompts = {
-        summary: `Create a concise summary of the following transcription. Focus on the main points and key takeaways. Keep it brief and to the point.\n\nTranscription:\n${transcription}`,
+        summary: `Create a concise summary of the following transcription. Focus on the main points and key takeaways. Keep it brief and to the point. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
         
-        detailed: `Create detailed notes from the following transcription. Include context, explanations, and important details. Organize the information logically.\n\nTranscription:\n${transcription}`,
+        detailed: `Create detailed notes from the following transcription. Include context, explanations, and important details. Organize the information logically. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
         
-        bullet: `Create organized bullet point notes from the following transcription. Structure them clearly with main points and sub-points. Perfect for meeting notes.\n\nTranscription:\n${transcription}`,
+        bullet: `Create organized bullet point notes from the following transcription. Structure them clearly with main points and sub-points. Perfect for meeting notes. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. Use regular bullet points (•) or dashes (-) for lists.\n\nTranscription:\n${transcription}`,
         
-        'action-items': `Extract and list all action items, tasks, and decisions from the following transcription. Format them clearly with who is responsible (if mentioned) and deadlines (if mentioned).\n\nTranscription:\n${transcription}`,
+        'action-items': `Extract and list all action items, tasks, and decisions from the following transcription. Format them clearly with who is responsible (if mentioned) and deadlines (if mentioned). Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only.\n\nTranscription:\n${transcription}`,
         
         transcript: transcription
       };
@@ -106,7 +106,25 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
       });
 
       console.log('Notes generated successfully');
-      return completion.choices[0].message.content;
+      let notes = completion.choices[0].message.content;
+      
+      // Convert markdown headers to bold text, then remove all # characters
+      // First, convert headers to bold (### Header -> **Header**)
+      notes = notes.replace(/^#{1,6}\s+(.+)$/gm, '**$1**'); // Convert headers at start of lines to bold
+      notes = notes.replace(/\s+#{1,6}\s+(.+?)(?=\n|$)/g, ' **$1**'); // Convert headers in middle of lines
+      
+      // Remove all remaining # characters
+      notes = notes.replace(/#/g, '');
+      
+      // Remove markdown bullet points (*) and convert to plain text
+      notes = notes.replace(/^\s*\*\s+/gm, '• '); // Convert * bullets to • bullets
+      notes = notes.replace(/^\s*-\s+/gm, '• '); // Convert - bullets to • bullets
+      
+      // Clean up excessive line breaks
+      notes = notes.replace(/\n{3,}/g, '\n\n');
+      notes = notes.trim();
+      
+      return notes;
     } catch (error) {
       console.error(`Note generation error (attempt ${attempt}/${retries}):`, error.message || error);
       

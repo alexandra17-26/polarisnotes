@@ -91,13 +91,13 @@ function ManualNotes({ onNotesGenerated, onProcessingStart, onProcessingStop }) 
 
         <div className="form-group">
           <label>Your Notes</label>
-          <textarea
-            value={manualNotes}
-            onChange={(e) => setManualNotes(e.target.value)}
-            placeholder="Type your notes here..."
-            className="notes-textarea"
-            rows="12"
-          />
+            <textarea
+              value={manualNotes}
+              onChange={(e) => setManualNotes(e.target.value)}
+              placeholder="Type your notes here..."
+              className="notes-textarea"
+              rows="6"
+            />
           <div className="char-count">
             {manualNotes.length} characters
           </div>

@@ -110,25 +110,6 @@ function App() {
                 onProcessingStop={handleProcessingStop}
                 isProcessing={isProcessing}
               />
-              <ManualNotes
-                onNotesGenerated={handleNotesGenerated}
-                onProcessingStart={handleProcessingStart}
-                onProcessingStop={handleProcessingStop}
-              />
-              <div className="history-toggle">
-                <button
-                  className="toggle-history-btn"
-                  onClick={() => setShowHistory(!showHistory)}
-                >
-                  {showHistory ? 'Hide' : 'Show'} Note History
-                </button>
-              </div>
-              {showHistory && (
-                <NoteHistory
-                  onSelectNote={handleSelectNote}
-                  selectedNoteId={selectedNoteId}
-                />
-              )}
               <CustomModes
                 onSelectCustomMode={(mode) => {
                   setNoteMode(`custom-${mode.id}`);
@@ -144,6 +125,25 @@ function App() {
                 noteId={currentNoteId}
                 insights={insights}
                 onUpdateNote={handleUpdateNote}
+              />
+              <div className="history-toggle">
+                <button
+                  className="toggle-history-btn"
+                  onClick={() => setShowHistory(!showHistory)}
+                >
+                  {showHistory ? 'Hide' : 'Show'} Note History
+                </button>
+              </div>
+              {showHistory && (
+                <NoteHistory
+                  onSelectNote={handleSelectNote}
+                  selectedNoteId={selectedNoteId}
+                />
+              )}
+              <ManualNotes
+                onNotesGenerated={handleNotesGenerated}
+                onProcessingStart={handleProcessingStart}
+                onProcessingStop={handleProcessingStop}
               />
             </div>
           </div>

@@ -12,14 +12,13 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 500;
   font-family: 'Cormorant Garamond', serif;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  font-size: 0.85rem;
 }
 
 .recorder-container {
@@ -49,7 +48,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Playfair Display', serif;
   position: relative;
   overflow: hidden;
 }
@@ -78,8 +77,10 @@
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
   border: 1px solid var(--accent-primary);
   font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
 .record-button.start:hover {
@@ -149,7 +150,7 @@
 .recording-text {
   color: var(--text-primary);
   font-weight: 500;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 .divider {
@@ -187,9 +188,11 @@
   border: 1px solid var(--notebook-line);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 0.9rem;
+  font-weight: 300;
   font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -219,6 +222,14 @@
   color: var(--text-muted);
   font-size: 0.85rem;
   text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+}
+
+.upload-hint[style*="fontSize: '0.8rem'"] {
+  font-size: 0.7rem !important;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
 }
 
 .processing-overlay {

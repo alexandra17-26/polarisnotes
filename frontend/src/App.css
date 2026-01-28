@@ -39,9 +39,11 @@
   border: 1px solid var(--notebook-line);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 0.9rem;
-  font-weight: 400;
+  font-size: 0.75rem;
+  font-weight: 300;
   font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 1px 4px var(--shadow-soft);

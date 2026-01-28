@@ -76,7 +76,7 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
                 onChange={(e) => setEditedNotes(e.target.value)}
               />
             ) : (
-              <pre className="notes-pre">{notes}</pre>
+              <div className="notes-pre" dangerouslySetInnerHTML={{ __html: notes.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }} />
             )}
           </div>
         ) : (
