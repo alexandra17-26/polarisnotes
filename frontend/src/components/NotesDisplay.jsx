@@ -189,16 +189,57 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
               Export TXT
             </button>
             <button
+              className="action-button"
+              onClick={() => {
+                const printWindow = window.open('', '_blank');
+                const content = `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>${notes?.substring(0, 50) || 'Note'}</title>
+                      <style>
+                        body {
+                          font-family: 'Inter', sans-serif;
+                          max-width: 800px;
+                          margin: 40px auto;
+                          padding: 20px;
+                          line-height: 1.6;
+                          color: #333;
+                        }
+                        h1 { color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+                        pre { white-space: pre-wrap; font-family: 'Inter', sans-serif; }
+                        @media print {
+                          body { margin: 0; padding: 20px; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <h1>${notes?.substring(0, 100) || 'Note'}</h1>
+                      <pre>${notes || ''}</pre>
+                    </body>
+                  </html>
+                `;
+                printWindow.document.write(content);
+                printWindow.document.close();
+                setTimeout(() => {
+                  printWindow.print();
+                }, 250);
+              }}
+            >
+              Export PDF
+            </button>
+            <button
               className="action-button share-btn"
               onClick={async () => {
                 try {
-                  const response = await axios.post(`/api/notes/${noteId}/share`);
-                  const shareUrl = response.data.shareUrl;
-                  await navigator.clipboard.writeText(shareUrl);
-                  alert('Share link copied to clipboard!');
+                  // Copy the actual note content instead of a URL
+                  const noteContent = activeTab === 'notes' ? (isEditing ? editedNotes : notes) : transcription;
+                  const shareText = `Notes from Polaris Notes\n\n${noteContent}`;
+                  await navigator.clipboard.writeText(shareText);
+                  alert('Notes copied to clipboard! You can now paste and share them.');
                 } catch (error) {
                   console.error('Error sharing note:', error);
-                  alert('Failed to create share link');
+                  alert('Failed to copy notes');
                 }
               }}
             >
