@@ -73,6 +73,8 @@ export const notesDb = {
       mode: noteData.mode,
       tags: noteData.tags || [],
       category: noteData.category || null,
+      comments: noteData.comments || [],
+      highlights: noteData.highlights || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -125,13 +127,41 @@ export const notesDb = {
   // Search notes
   searchNotes: (query, limit = 50) => {
     const notes = readNotes();
+    const insights = readInsights();
     const searchTerm = query.toLowerCase();
+
+    const getInsightsText = (noteId) => {
+      const insight = insights.find(i => i.note_id === noteId);
+      if (!insight) return '';
+
+      const topics = Array.isArray(insight.topics) ? insight.topics.join(' ') : '';
+      const dates = Array.isArray(insight.dates) ? insight.dates.join(' ') : '';
+      const keyPoints = Array.isArray(insight.key_points) ? insight.key_points.join(' ') : '';
+
+      const actionItems = Array.isArray(insight.action_items)
+        ? insight.action_items.map(item => {
+            if (typeof item === 'string') return item;
+            return `${item.task || ''} ${item.assignee || ''} ${item.deadline || ''}`;
+          }).join(' ')
+        : '';
+
+      return `${topics} ${dates} ${keyPoints} ${actionItems}`.toLowerCase();
+    };
+
     return notes
-      .filter(note => 
-        note.notes?.toLowerCase().includes(searchTerm) ||
-        note.transcription?.toLowerCase().includes(searchTerm) ||
-        note.title?.toLowerCase().includes(searchTerm)
-      )
+      .filter(note => {
+        const baseText = [
+          note.title || '',
+          note.notes || '',
+          note.transcription || '',
+          Array.isArray(note.tags) ? note.tags.join(' ') : '',
+          note.category || ''
+        ].join(' ').toLowerCase();
+
+        const insightsText = getInsightsText(note.id);
+
+        return baseText.includes(searchTerm) || insightsText.includes(searchTerm);
+      })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, limit);
   },

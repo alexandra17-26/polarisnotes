@@ -73,13 +73,13 @@ function ManualNotes({ onNotesGenerated, onProcessingStart, onProcessingStop }) 
         </div>
 
         <div className="form-group">
-          <label>Category (Optional)</label>
+          <label>Folder (Optional)</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="category-select"
           >
-            <option value="">None</option>
+            <option value="">No Folder</option>
             <option value="work">Work</option>
             <option value="personal">Personal</option>
             <option value="meeting">Meeting</option>

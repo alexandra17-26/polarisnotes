@@ -31,5 +31,27 @@
     "category": null,
     "created_at": "2026-01-28T02:55:21.311Z",
     "updated_at": "2026-01-28T02:55:21.311Z"
+  },
+  {
+    "id": 5,
+    "title": "Note 1/28/2026, 2:04:02 PM",
+    "notes": "**Context:**\n• The transcription provided lacks sufficient information to establish any specific context or details.\n\n**Note:**\n• Without additional content, it is challenging to provide a detailed note or analysis based on the transcription \"Oh.\" \n• To create comprehensive notes, more information or context is needed to understand the subject matter or discussion being transcribed.",
+    "transcription": null,
+    "mode": "notes-only",
+    "tags": [],
+    "category": null,
+    "created_at": "2026-01-28T20:04:02.139Z",
+    "updated_at": "2026-01-28T20:04:02.139Z"
+  },
+  {
+    "id": 6,
+    "title": "Note 1/28/2026, 2:45:46 PM",
+    "notes": "**Context:**\nThe speaker is discussing a medical procedure known as percussion. They mention that when a certain area is percussed, there is a distinct sound or sensation that occurs.\n\n**Details:**\n• Percussion is a diagnostic technique used by healthcare providers to assess the sounds and vibrations produced by tapping on various parts of the body.\n• It is commonly used to evaluate the size, consistency, and borders of organs such as the liver and spleen.\n• The technique involves tapping the body surface with fingers, hands, or a specialized percussion hammer to produce sound waves that travel through the body tissues.\n• Different organs and tissue types produce characteristic sounds when percussed, which can help healthcare providers identify abnormalities or changes in the underlying structures.\n• Percussion is often used in combination with other physical examination techniques to gather information about a patient's health status and aid in the diagnosis of various medical conditions.\n\n**Implications:**\n• Understanding percussion techniques and interpreting the resulting sounds is an essential skill for healthcare professionals, particularly those involved in physical examinations and diagnostic procedures.\n• Proper training and practice are necessary to develop proficiency in percussion and to accurately interpret the findings obtained through this technique.\n• The information gathered through percussion can provide valuable insights into a patient's health and help guide further diagnostic tests or treatment plans.",
+    "transcription": "...percussed, you know, there's like a whole...\n",
+    "mode": "detailed",
+    "tags": [],
+    "category": null,
+    "created_at": "2026-01-28T20:45:46.097Z",
+    "updated_at": "2026-01-28T20:45:46.097Z"
   }
 ]

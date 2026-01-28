@@ -64,17 +64,37 @@ function Instructions() {
 
           <div className="instructions-section">
             <h3>5. Note History</h3>
-            <p>Click "Show Note History" to:</p>
+            <p>Click "Show Note History" to view and manage all your saved notes.</p>
             <ul>
-              <li>View all your saved notes</li>
-              <li>Search notes by content</li>
-              <li>Filter by category (Work, Personal, Meeting, etc.)</li>
+              <li>View all your saved notes in chronological order</li>
               <li>Click any note to view and edit it</li>
             </ul>
           </div>
 
           <div className="instructions-section">
-            <h3>6. Custom Note Modes</h3>
+            <h3>6. Smart Search</h3>
+            <p>Use the search bar in Note History to find notes quickly:</p>
+            <ul>
+              <li><strong>What it searches:</strong> The search looks through note titles, note content, full transcripts, tags, and insights (topics, action items, important dates, key points)</li>
+              <li><strong>How to use:</strong> Type any keyword or phrase in the search box. Results update as you type</li>
+              <li><strong>Examples:</strong> Search for "meeting", "deadline", a person's name, or any topic mentioned in your notes</li>
+              <li><strong>Tip:</strong> The search is case-insensitive and finds partial matches, so you don't need to type exact words</li>
+            </ul>
+          </div>
+
+          <div className="instructions-section">
+            <h3>7. Folders</h3>
+            <p>Organize your notes into folders to keep them organized:</p>
+            <ul>
+              <li><strong>Assigning folders:</strong> When creating notes, use the "Folder (Optional)" dropdown in Manual Notes to assign a folder (Work, Personal, Meeting, Lecture, Study, or Other)</li>
+              <li><strong>Filtering by folder:</strong> In Note History, use the folder dropdown to filter notes. Select "All Folders" to see everything, or choose a specific folder to see only notes in that folder</li>
+              <li><strong>Important:</strong> Only notes that were saved with a folder assigned will appear when you filter by that folder. Notes without a folder will only show up under "All Folders"</li>
+              <li><strong>Tip:</strong> Use folders consistently (e.g., always put work meetings in "Work", class notes in "Lecture") to make finding notes easier</li>
+            </ul>
+          </div>
+
+          <div className="instructions-section">
+            <h3>8. Custom Note Modes</h3>
             <p>Create your own note templates:</p>
             <ul>
               <li>Scroll to "Custom Note Modes" section</li>
@@ -91,7 +111,7 @@ function Instructions() {
               <li>All notes are automatically saved to your history</li>
               <li>You can edit, export, and share any saved note</li>
               <li>Insights are generated automatically for each note</li>
-              <li>Use categories to organize your notes</li>
+              <li>Combine search and folder filters to quickly find specific notes</li>
               <li>Manual notes don't require audio - just type and save</li>
             </ul>
           </div>

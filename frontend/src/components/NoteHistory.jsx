@@ -56,7 +56,7 @@ function NoteHistory({ onSelectNote, selectedNoteId }) {
         <div className="history-controls">
           <input
             type="text"
-            placeholder="Search notes..."
+            placeholder="Smart search across notes, transcripts, and insights..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -66,7 +66,7 @@ function NoteHistory({ onSelectNote, selectedNoteId }) {
             onChange={(e) => setCategory(e.target.value)}
             className="category-filter"
           >
-            <option value="">All Categories</option>
+            <option value="">All Folders</option>
             <option value="work">Work</option>
             <option value="personal">Personal</option>
             <option value="meeting">Meeting</option>

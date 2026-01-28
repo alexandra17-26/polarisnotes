@@ -62,5 +62,31 @@
       "Project is for Polaris Ideas class, section 003",
       "Project deadline is tomorrow"
     ]
+  },
+  {
+    "note_id": 5,
+    "topics": [],
+    "action_items": [],
+    "dates": [],
+    "key_points": []
+  },
+  {
+    "note_id": 6,
+    "topics": [
+      "Percussion",
+      "Medical procedure",
+      "Diagnostic technique",
+      "Healthcare providers",
+      "Physical examinations",
+      "Diagnostic procedures"
+    ],
+    "action_items": [],
+    "dates": [],
+    "key_points": [
+      "Percussion is a diagnostic technique used by healthcare providers to assess sounds and vibrations produced by tapping on various body parts.",
+      "Different organs and tissues produce characteristic sounds when percussed, aiding in identifying abnormalities.",
+      "Proper training and practice are essential for healthcare professionals to interpret percussion findings accurately.",
+      "Percussion provides valuable insights into a patient's health and guides further diagnostic tests or treatment plans."
+    ]
   }
 ]

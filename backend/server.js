@@ -358,6 +358,59 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+// Note comments endpoints
+app.post('/api/notes/:id/comments', (req, res) => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const note = notesDb.getNoteById(noteId);
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const { text, highlightedText } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: 'Comment text is required' });
+    }
+
+    const comments = Array.isArray(note.comments) ? note.comments : [];
+    const newComment = {
+      id: Date.now(),
+      text: text.trim(),
+      highlightedText: (highlightedText || '').trim(),
+      created_at: new Date().toISOString()
+    };
+
+    const updatedComments = [...comments, newComment];
+    notesDb.updateNote(noteId, { comments: updatedComments });
+
+    res.json({ success: true, comments: updatedComments });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ error: 'Failed to add comment', message: error.message });
+  }
+});
+
+app.delete('/api/notes/:id/comments/:commentId', (req, res) => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const commentId = parseInt(req.params.commentId);
+    const note = notesDb.getNoteById(noteId);
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const comments = Array.isArray(note.comments) ? note.comments : [];
+    const updatedComments = comments.filter(c => c.id !== commentId);
+
+    notesDb.updateNote(noteId, { comments: updatedComments });
+
+    res.json({ success: true, comments: updatedComments });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: 'Failed to delete comment', message: error.message });
+  }
+});
+
 // Custom modes API endpoints
 app.post('/api/custom-modes', (req, res) => {
   try {
