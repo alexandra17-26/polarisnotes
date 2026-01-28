@@ -1,0 +1,201 @@
+.custom-modes {
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.custom-modes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.add-mode-btn {
+  padding: 0.5rem 1rem;
+  background: var(--accent-primary);
+  color: white;
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-mode-btn:hover {
+  background: var(--accent-secondary);
+}
+
+.custom-mode-form {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  background: var(--notebook-paper);
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.file-input {
+  padding: 0.5rem;
+}
+
+.form-actions {
+  margin-top: 1rem;
+}
+
+.save-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-primary);
+  color: white;
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+  background: var(--accent-secondary);
+}
+
+.custom-modes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.custom-mode-item {
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.custom-mode-item:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.mode-item-content h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.mode-item-content p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0;
+}
+
+.writing-style-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--accent-primary);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--accent-primary);
+  font-family: 'Inter', sans-serif;
+  margin-top: 0.5rem;
+}
+
+.mode-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.use-mode-btn,
+.delete-mode-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.use-mode-btn {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.use-mode-btn:hover {
+  background: var(--accent-secondary);
+}
+
+.delete-mode-btn {
+  background: var(--notebook-paper);
+  color: var(--text-primary);
+}
+
+.delete-mode-btn:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: var(--doodle-red);
+  color: var(--doodle-red);
+}
+
+.empty-custom-modes {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+.empty-custom-modes p {
+  margin: 0;
+  font-size: 0.95rem;
+}

@@ -70,7 +70,19 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       }, 1000);
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      alert('Could not access microphone. Please check permissions.');
+      let errorMessage = 'Could not access microphone. ';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage += 'Please allow microphone access in your browser settings.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        errorMessage += 'No microphone found. Please connect a microphone.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        errorMessage += 'Microphone is being used by another application.';
+      } else {
+        errorMessage += `Error: ${error.message || 'Unknown error'}`;
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -201,6 +213,9 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
             Upload Audio File
           </button>
           <p className="upload-hint">Supports MP3, WAV, M4A, and other audio formats</p>
+          <p className="upload-hint" style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            💡 For video calls (Zoom, Google Meet), record the meeting separately and upload the audio file here. Browser recording only captures your microphone, not meeting audio.
+          </p>
         </div>
 
         {isProcessing && (

@@ -1,0 +1,44 @@
+[
+  {
+    "note_id": 1,
+    "topics": [
+      "Purpose",
+      "Benefits of Sharing",
+      "Call to Action",
+      "Engagement",
+      "Social Media Impact"
+    ],
+    "action_items": [
+      {
+        "task": "Share the video with friends on social media",
+        "assignee": "Audience",
+        "deadline": "Immediate"
+      }
+    ],
+    "dates": [],
+    "key_points": [
+      "Sharing the video helps in promoting it to a wider audience",
+      "Sharing can attract more viewers and increase engagement",
+      "Engagement through sharing creates a sense of community",
+      "Social media platforms offer a powerful way to distribute content",
+      "Sharing on social media can have a snowball effect"
+    ]
+  },
+  {
+    "note_id": 2,
+    "topics": [
+      "Proxy Wars vs. Troop Deployments",
+      "Long-term vs. Short-term Thinking",
+      "Machiavellian Immoral Realism"
+    ],
+    "action_items": [],
+    "dates": [
+      "16th century"
+    ],
+    "key_points": [
+      "Proxy wars involve using third-party forces instead of deploying own troops",
+      "Importance of considering long-term and short-term implications in military strategies",
+      "Critics of Machiavelli promoted long-term thinking as an alternative to immoral realism"
+    ]
+  }
+]

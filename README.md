@@ -13,8 +13,14 @@ A futuristic, techy AI-powered note-taking web application that can record notes
   - **Bullet Points** - Organized bullet points for meetings
   - **Action Items** - Focus on tasks and action items
   - **Full Transcript** - Complete verbatim transcription
-- 🎨 **Modern UI** - Futuristic, techy design with light academia aesthetic
-- 💾 **Export Options** - Copy to clipboard or download as text file
+  - **Custom Modes** - Create and upload your own note templates and writing styles
+- 💾 **Note History & Saving** - All notes are automatically saved to a local database
+- ✏️ **Edit & Refine** - Edit generated notes and save changes
+- 📤 **Export Options** - Export as Markdown, TXT, or copy to clipboard
+- 🔍 **Search & Filter** - Search through saved notes and filter by category
+- 💡 **Note Insights** - Automatically extract topics, action items, and important dates
+- 🔗 **Sharing** - Share notes via link
+- 🎨 **Elegant UI** - Clean, minimal design with serif typography
 
 ## Tech Stack
 

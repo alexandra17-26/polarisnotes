@@ -62,7 +62,7 @@ export async function transcribeAudio(filePath, retries = 3) {
   }
 }
 
-export async function generateNotes(transcription, mode = 'detailed', retries = 3) {
+export async function generateNotes(transcription, mode = 'detailed', retries = 3, customPrompt = null) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`Generating notes, mode: ${mode} (attempt ${attempt}/${retries})`);
@@ -83,6 +83,11 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
         return transcription;
       }
 
+      // Use custom prompt if provided
+      const finalPrompt = customPrompt 
+        ? customPrompt.replace('{transcription}', transcription)
+        : prompts[mode] || prompts.detailed;
+
       console.log('Calling OpenAI API...');
       const completion = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
@@ -93,7 +98,7 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
           },
           {
             role: 'user',
-            content: prompts[mode] || prompts.detailed
+            content: finalPrompt
           }
         ],
         temperature: 0.7,
@@ -129,5 +134,46 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
         : error.message || 'Failed to generate notes. Please check your API key and account credits.';
       throw new Error(`Failed to generate notes: ${errorMsg}`);
     }
+  }
+}
+
+export async function generateInsights(transcription, notes) {
+  try {
+    console.log('Generating insights...');
+    
+    const prompt = `Analyze the following transcription and notes. Extract and return a JSON object with:
+1. "topics" - array of main topics discussed
+2. "action_items" - array of action items with format: {task: "...", assignee: "...", deadline: "..."}
+3. "dates" - array of important dates mentioned
+4. "key_points" - array of 3-5 key points
+
+Transcription: ${transcription.substring(0, 2000)}
+Notes: ${notes.substring(0, 2000)}
+
+Return ONLY valid JSON, no other text.`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert at analyzing text and extracting structured information. Always return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1000,
+      response_format: { type: 'json_object' }
+    });
+
+    const insights = JSON.parse(completion.choices[0].message.content);
+    console.log('Insights generated successfully');
+    return insights;
+  } catch (error) {
+    console.error('Error generating insights:', error);
+    return null;
   }
 }

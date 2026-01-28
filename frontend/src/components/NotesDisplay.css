@@ -205,6 +205,123 @@
   height: 18px;
 }
 
+.notes-edit {
+  width: 100%;
+  min-height: 400px;
+  padding: 1.5rem;
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: var(--notebook-paper);
+  resize: vertical;
+}
+
+.note-insights {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.insights-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.insight-section {
+  margin-bottom: 1rem;
+}
+
+.insight-section h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.insight-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.insight-tag {
+  padding: 0.25rem 0.75rem;
+  background: var(--notebook-paper);
+  border: 1px solid var(--accent-primary);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+.action-items-list,
+.dates-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.action-items-list li,
+.dates-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--notebook-line);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.action-items-list li:last-child,
+.dates-list li:last-child {
+  border-bottom: none;
+}
+
+.assignee {
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.deadline {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.save-btn {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.save-btn:hover {
+  background: var(--accent-secondary);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.share-btn {
+  background: var(--academia-sage);
+  color: white;
+  border-color: var(--academia-sage);
+}
+
+.share-btn:hover {
+  background: #7ba06a;
+}
+
 @media (max-width: 768px) {
   .notes-display {
     min-height: 400px;

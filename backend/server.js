@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs-extra';
 import dotenv from 'dotenv';
-import { transcribeAudio, generateNotes } from './services/aiService.js';
+import { transcribeAudio, generateNotes, generateInsights } from './services/aiService.js';
+import { notesDb } from './services/database.js';
 
 dotenv.config();
 
@@ -112,17 +113,45 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
 
     // Generate notes based on mode
     console.log('Generating notes...');
-    const notes = await generateNotes(transcription, noteMode || 'detailed');
+    let customPrompt = null;
+    
+    // Check if it's a custom mode
+    if (noteMode && noteMode.startsWith('custom-')) {
+      const customModeId = parseInt(noteMode.replace('custom-', ''));
+      const customMode = notesDb.getCustomModeById(customModeId);
+      if (customMode) {
+        customPrompt = customMode.prompt;
+      }
+    }
+    
+    const notes = await generateNotes(transcription, noteMode || 'detailed', 3, customPrompt);
     console.log('Notes generated');
 
     // Clean up uploaded file
     await fs.remove(filePath);
 
+    // Save note to database
+    const noteId = notesDb.saveNote({
+      notes,
+      transcription,
+      mode: noteMode || 'detailed'
+    });
+
+    // Generate insights in the background
+    generateInsights(transcription, notes).then(insights => {
+      if (insights) {
+        notesDb.saveNoteInsights(noteId, insights);
+      }
+    }).catch(err => {
+      console.error('Error generating insights:', err);
+    });
+
     res.json({
       success: true,
       transcription,
       notes,
-      mode: noteMode || 'detailed'
+      mode: noteMode || 'detailed',
+      noteId
     });
   } catch (error) {
     console.error('Error processing audio:', error);
@@ -194,9 +223,10 @@ app.post('/api/transcribe/live', async (req, res) => {
 });
 
 // Get available note modes
-app.get('/api/modes', (req, res) => {
-  res.json({
-    modes: [
+app.get('/api/modes', async (req, res) => {
+  try {
+    const customModes = notesDb.getAllCustomModes();
+    const defaultModes = [
       {
         id: 'summary',
         name: 'Summary',
@@ -222,8 +252,176 @@ app.get('/api/modes', (req, res) => {
         name: 'Full Transcript',
         description: 'Complete verbatim transcription'
       }
-    ]
-  });
+    ];
+    
+    const customModesFormatted = customModes.map(mode => ({
+      id: `custom-${mode.id}`,
+      name: mode.name,
+      description: mode.description || '',
+      isCustom: true
+    }));
+    
+    res.json({
+      modes: [...defaultModes, ...customModesFormatted]
+    });
+  } catch (error) {
+    console.error('Error fetching modes:', error);
+    res.status(500).json({ error: 'Failed to fetch modes' });
+  }
+});
+
+// Notes API endpoints
+app.post('/api/notes', (req, res) => {
+  try {
+    const noteId = notesDb.saveNote(req.body);
+    res.json({ success: true, noteId, note: notesDb.getNoteById(noteId) });
+  } catch (error) {
+    console.error('Error saving note:', error);
+    res.status(500).json({ error: 'Failed to save note', message: error.message });
+  }
+});
+
+app.get('/api/notes', (req, res) => {
+  try {
+    const { limit = 50, offset = 0, category, search } = req.query;
+    
+    let notes;
+    if (search) {
+      notes = notesDb.searchNotes(search, parseInt(limit));
+    } else if (category) {
+      notes = notesDb.getNotesByCategory(category);
+    } else {
+      notes = notesDb.getAllNotes(parseInt(limit), parseInt(offset));
+    }
+    
+    res.json({ success: true, notes });
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).json({ error: 'Failed to fetch notes', message: error.message });
+  }
+});
+
+app.get('/api/notes/:id', (req, res) => {
+  try {
+    const note = notesDb.getNoteById(parseInt(req.params.id));
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    const insights = notesDb.getNoteInsights(note.id);
+    res.json({ success: true, note, insights });
+  } catch (error) {
+    console.error('Error fetching note:', error);
+    res.status(500).json({ error: 'Failed to fetch note', message: error.message });
+  }
+});
+
+app.put('/api/notes/:id', (req, res) => {
+  try {
+    notesDb.updateNote(parseInt(req.params.id), req.body);
+    const note = notesDb.getNoteById(parseInt(req.params.id));
+    res.json({ success: true, note });
+  } catch (error) {
+    console.error('Error updating note:', error);
+    res.status(500).json({ error: 'Failed to update note', message: error.message });
+  }
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  try {
+    notesDb.deleteNote(parseInt(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ error: 'Failed to delete note', message: error.message });
+  }
+});
+
+// Custom modes API endpoints
+app.post('/api/custom-modes', (req, res) => {
+  try {
+    const modeId = notesDb.saveCustomMode(req.body);
+    res.json({ success: true, modeId, mode: notesDb.getCustomModeById(modeId) });
+  } catch (error) {
+    console.error('Error saving custom mode:', error);
+    res.status(500).json({ error: 'Failed to save custom mode', message: error.message });
+  }
+});
+
+app.get('/api/custom-modes', (req, res) => {
+  try {
+    const modes = notesDb.getAllCustomModes();
+    res.json({ success: true, modes });
+  } catch (error) {
+    console.error('Error fetching custom modes:', error);
+    res.status(500).json({ error: 'Failed to fetch custom modes', message: error.message });
+  }
+});
+
+app.delete('/api/custom-modes/:id', (req, res) => {
+  try {
+    notesDb.deleteCustomMode(parseInt(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting custom mode:', error);
+    res.status(500).json({ error: 'Failed to delete custom mode', message: error.message });
+  }
+});
+
+// Export endpoints
+app.get('/api/notes/:id/export/:format', (req, res) => {
+  try {
+    const note = notesDb.getNoteById(parseInt(req.params.id));
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    const { format } = req.params;
+    
+    if (format === 'markdown') {
+      res.setHeader('Content-Type', 'text/markdown');
+      res.setHeader('Content-Disposition', `attachment; filename="note-${note.id}.md"`);
+      res.send(`# ${note.title || 'Note'}\n\n${note.notes}`);
+    } else if (format === 'txt') {
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="note-${note.id}.txt"`);
+      res.send(note.notes);
+    } else {
+      res.status(400).json({ error: 'Unsupported format' });
+    }
+  } catch (error) {
+    console.error('Error exporting note:', error);
+    res.status(500).json({ error: 'Failed to export note', message: error.message });
+  }
+});
+
+// Share note endpoint (creates a shareable link)
+app.post('/api/notes/:id/share', (req, res) => {
+  try {
+    const note = notesDb.getNoteById(parseInt(req.params.id));
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    // For now, return the note data that can be shared
+    // In production, you'd create a unique share token
+    const shareData = {
+      id: note.id,
+      title: note.title || `Note ${note.id}`,
+      notes: note.notes,
+      mode: note.mode,
+      createdAt: note.created_at
+    };
+    
+    res.json({ 
+      success: true, 
+      shareUrl: `${req.protocol}://${req.get('host')}/share/${note.id}`,
+      shareData 
+    });
+  } catch (error) {
+    console.error('Error sharing note:', error);
+    res.status(500).json({ error: 'Failed to share note', message: error.message });
+  }
 });
 
 app.listen(PORT, () => {
