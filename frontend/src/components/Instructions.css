@@ -1,0 +1,129 @@
+.instructions-container {
+  position: relative;
+}
+
+.instructions-toggle {
+  padding: 0.4rem 0.75rem;
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  box-shadow: 0 1px 3px var(--shadow-soft);
+}
+
+.instructions-toggle:hover {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.instructions-icon {
+  font-size: 1rem;
+  opacity: 0.6;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.instructions-text {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.instructions-content {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--notebook-line);
+}
+
+.instructions-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.instructions-section {
+  margin-bottom: 2rem;
+}
+
+.instructions-section h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--notebook-line);
+}
+
+.instructions-section p {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.instructions-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+.instructions-section li {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.8;
+  padding-left: 1.5rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.instructions-section li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent-primary);
+  font-weight: bold;
+}
+
+.instructions-section strong {
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.instructions-section code {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--accent-primary);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
+  font-family: 'Inter', monospace;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+}
+
+.tip {
+  background: rgba(99, 102, 241, 0.05);
+  border-left: 3px solid var(--accent-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+.tip strong {
+  font-style: normal;
+}

@@ -19,6 +19,12 @@
   gap: 1rem;
 }
 
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -58,6 +64,33 @@
   font-family: 'Inter', sans-serif;
   letter-spacing: 0.3px;
   text-transform: uppercase;
+  margin-left: 3.5rem;
+}
+
+.header-instructions {
+  display: flex;
+  align-items: center;
+}
+
+.header-instructions .instructions-container {
+  position: relative;
+}
+
+.header-instructions .instructions-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 90vw;
+  max-width: 800px;
+  z-index: 1000;
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px var(--shadow-soft);
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {

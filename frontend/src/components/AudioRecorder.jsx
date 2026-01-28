@@ -214,7 +214,7 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
           </button>
           <p className="upload-hint">Supports MP3, WAV, M4A, and other audio formats</p>
           <p className="upload-hint" style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            💡 For video calls (Zoom, Google Meet), record the meeting separately and upload the audio file here. Browser recording only captures your microphone, not meeting audio.
+            For video calls (Zoom, Google Meet), record the meeting separately and upload the audio file here. Browser recording only captures your microphone, not meeting audio.
           </p>
         </div>
 

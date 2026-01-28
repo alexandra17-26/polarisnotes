@@ -269,7 +269,7 @@ function NotesDisplay({ notes, transcription, mode, isProcessing, noteId, onUpda
                       // Add insights if available
                       if (noteInsights) {
                         shareText += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-                        shareText += `💡 INSIGHTS\n`;
+                        shareText += `INSIGHTS\n`;
                         shareText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
                         
                         if (noteInsights.topics && noteInsights.topics.length > 0) {
