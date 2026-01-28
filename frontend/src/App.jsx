@@ -6,6 +6,7 @@ import NoteModeSelector from './components/NoteModeSelector';
 import NotesDisplay from './components/NotesDisplay';
 import NoteHistory from './components/NoteHistory';
 import CustomModes from './components/CustomModes';
+import ManualNotes from './components/ManualNotes';
 import './App.css';
 
 function App() {
@@ -108,6 +109,11 @@ function App() {
                 onProcessingStart={handleProcessingStart}
                 onProcessingStop={handleProcessingStop}
                 isProcessing={isProcessing}
+              />
+              <ManualNotes
+                onNotesGenerated={handleNotesGenerated}
+                onProcessingStart={handleProcessingStart}
+                onProcessingStop={handleProcessingStop}
               />
               <div className="history-toggle">
                 <button

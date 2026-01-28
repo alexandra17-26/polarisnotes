@@ -1,0 +1,95 @@
+.manual-notes {
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.manual-notes-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.manual-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.title-input,
+.category-select,
+.notes-textarea {
+  padding: 0.75rem;
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  background: var(--notebook-paper);
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.title-input:focus,
+.category-select:focus,
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.notes-textarea {
+  min-height: 200px;
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+}
+
+.char-count {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.save-manual-notes-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-primary);
+  color: white;
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.save-manual-notes-btn:hover:not(:disabled) {
+  background: var(--accent-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.save-manual-notes-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
