@@ -134,8 +134,12 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       onNotesGenerated(response.data);
     } catch (error) {
       console.error('Error processing audio:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to process audio. Please check your API key and try again.';
-      alert(errorMessage);
+      let errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to process audio. Please check your API key and try again.';
+      // Ensure we always show a string (API sometimes returns an object)
+      if (typeof errorMessage === 'object' && errorMessage !== null) {
+        errorMessage = errorMessage.message || JSON.stringify(errorMessage);
+      }
+      alert(String(errorMessage));
       if (onProcessingStop) {
         onProcessingStop(); // Reset processing state
       }
