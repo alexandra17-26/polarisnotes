@@ -14,7 +14,15 @@ function App() {
   const [notes, setNotes] = useState(null);
   const [transcription, setTranscription] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [modes, setModes] = useState([]);
+  const defaultModes = [
+    { id: 'summary', name: 'Summary', description: 'Concise overview of key points' },
+    { id: 'detailed', name: 'Detailed', description: 'Comprehensive notes with full context' },
+    { id: 'bullet', name: 'Bullet Points', description: 'Organized bullet points for meetings' },
+    { id: 'action-items', name: 'Action Items', description: 'Focus on tasks and action items' },
+    { id: 'notes-only', name: 'Notes Only', description: 'Generate notes without transcript' },
+    { id: 'transcript', name: 'Full Transcript', description: 'Complete verbatim transcription' },
+  ];
+  const [modes, setModes] = useState(defaultModes);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [currentNoteId, setCurrentNoteId] = useState(null);
   const [insights, setInsights] = useState(null);
@@ -27,9 +35,13 @@ function App() {
   const fetchModes = async () => {
     try {
       const response = await api.get('/api/modes');
-      setModes(response.data.modes);
+      const list = response.data?.modes;
+      if (Array.isArray(list) && list.length > 0) {
+        setModes(list);
+      }
     } catch (error) {
       console.error('Error fetching modes:', error);
+      // Keep default modes on error so options always show
     }
   };
 
