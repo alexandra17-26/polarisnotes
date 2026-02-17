@@ -21,15 +21,20 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
 
   const startRecording = async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alert('Recording is not supported in this browser. Try Chrome or Safari (iOS 14.3+).');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Try to use webm codec, fallback to default
-      let options = { mimeType: 'audio/webm' };
+      // Choose format: Safari (especially iOS) often doesn't support webm, so use default if needed
+      let options = {};
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         options.mimeType = 'audio/webm;codecs=opus';
       } else if (MediaRecorder.isTypeSupported('audio/webm')) {
         options.mimeType = 'audio/webm';
       }
+      // Else leave options empty so browser uses its default (e.g. Safari uses mp4/aac)
       
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
@@ -48,8 +53,12 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
           setAudioBlob(blob);
           stream.getTracks().forEach(track => track.stop());
           
-          // Convert to a File with proper extension for OpenAI
-          const extension = mimeType.includes('webm') ? 'webm' : 'wav';
+          // Convert to a File with proper extension for OpenAI (Safari often uses mp4/m4a)
+          let extension = 'webm';
+          if (mimeType.includes('webm')) extension = 'webm';
+          else if (mimeType.includes('mp4') || mimeType.includes('m4a')) extension = 'm4a';
+          else if (mimeType.includes('ogg')) extension = 'oga';
+          else if (mimeType.includes('wav')) extension = 'wav';
           const audioFile = new File([blob], `recording.${extension}`, { type: mimeType });
           console.log('Processing audio file:', audioFile.name, audioFile.type, audioFile.size);
           await processAudio(audioFile);

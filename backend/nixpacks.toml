@@ -1,0 +1,12 @@
+# Tell Railway/Nixpacks how to build this service
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["echo 'No build step needed'"]
+
+[start]
+cmd = "npm start"
