@@ -4,6 +4,7 @@ import './AudioRecorder.css';
 
 function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProcessingStop, isProcessing }) {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef(null);
@@ -72,6 +73,7 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       
       mediaRecorder.start();
       setIsRecording(true);
+      setIsPaused(false);
       setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
@@ -95,10 +97,48 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
     }
   };
 
+  const pauseRecording = () => {
+    const mr = mediaRecorderRef.current;
+    if (!mr || !isRecording) return;
+    try {
+      if (mr.state === 'recording' && typeof mr.pause === 'function') {
+        mr.pause();
+        setIsPaused(true);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      }
+    } catch (e) {
+      console.warn('Pause not supported', e);
+    }
+  };
+
+  const resumeRecording = () => {
+    const mr = mediaRecorderRef.current;
+    if (!mr || !isRecording) return;
+    try {
+      if (mr.state === 'paused' && typeof mr.resume === 'function') {
+        mr.resume();
+        setIsPaused(false);
+        timerRef.current = setInterval(() => {
+          setRecordingTime(prev => prev + 1);
+        }, 1000);
+      }
+    } catch (e) {
+      console.warn('Resume not supported', e);
+    }
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      const mr = mediaRecorderRef.current;
+      if (mr.state === 'paused' && typeof mr.resume === 'function') {
+        mr.resume();
+      }
+      mr.stop();
       setIsRecording(false);
+      setIsPaused(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -181,21 +221,48 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
               Start Recording
             </button>
           ) : (
-            <button
-              className="record-button stop"
-              onClick={stopRecording}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-              </svg>
-              Stop Recording
-            </button>
+            <div className="recording-buttons">
+              <button
+                type="button"
+                className="record-button pause"
+                onClick={isPaused ? resumeRecording : pauseRecording}
+                title={isPaused ? 'Resume' : 'Pause'}
+              >
+                {isPaused ? (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="6" y="4" width="4" height="16" rx="1" />
+                      <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                    Pause
+                  </>
+                )}
+              </button>
+              <button
+                className="record-button stop"
+                onClick={stopRecording}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+                Stop Recording
+              </button>
+            </div>
           )}
 
           {isRecording && (
-            <div className="recording-indicator">
+            <div className={`recording-indicator ${isPaused ? 'paused' : ''}`}>
               <span className="pulse-dot"></span>
-              <span className="recording-text">Recording: {formatTime(recordingTime)}</span>
+              <span className="recording-text">
+                {isPaused ? `Paused: ${formatTime(recordingTime)}` : `Recording: ${formatTime(recordingTime)}`}
+              </span>
             </div>
           )}
         </div>
