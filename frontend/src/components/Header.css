@@ -29,6 +29,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 .logo-icon {
@@ -65,6 +67,50 @@
   letter-spacing: 0.3px;
   text-transform: uppercase;
   margin-left: 3.5rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-user-name {
+  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-secondary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-signout {
+  padding: 0.4rem 0.75rem;
+  background: var(--notebook-paper);
+  border: 1px solid var(--notebook-line);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-signout:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
 }
 
 .header-instructions {

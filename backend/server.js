@@ -7,6 +7,8 @@ import fs from 'fs-extra';
 import dotenv from 'dotenv';
 import { transcribeAudio, generateNotes, generateInsights } from './services/aiService.js';
 import { notesDb } from './services/database.js';
+import { registerUser, loginUser, authMiddleware, loginOrRegisterGoogleUser } from './services/auth.js';
+import { verifyGoogleIdToken } from './services/googleAuth.js';
 
 dotenv.config();
 
@@ -54,6 +56,63 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
+// Auth endpoints (no auth required)
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const result = await registerUser(req.body);
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+    res.json({ success: true, user: result.user, token: result.token });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ success: false, error: 'Registration failed.' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const identifier = body.identifier ?? body.email ?? body.phone ?? '';
+    const password = body.password ?? '';
+    const idOrEmailOrPhone = String(identifier).trim();
+    const result = await loginUser({ identifier: idOrEmailOrPhone, password });
+    if (!result.success) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Login failed. Received body keys:', Object.keys(body), 'identifier length:', idOrEmailOrPhone.length, 'password length:', password ? password.length : 0);
+      }
+      return res.status(401).json({ success: false, error: result.error });
+    }
+    res.json({ success: true, user: result.user, token: result.token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, error: 'Login failed.' });
+  }
+});
+
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+  res.json({ success: true, user: req.user });
+});
+
+// Google sign-in endpoint
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ success: false, error: 'idToken is required.' });
+    }
+    const googlePayload = await verifyGoogleIdToken(idToken);
+    const result = await loginOrRegisterGoogleUser(googlePayload);
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+    res.json({ success: true, user: result.user, token: result.token });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ success: false, error: 'Google sign-in failed.' });
+  }
+});
+
 // Test API key endpoint
 app.get('/api/test-key', async (req, res) => {
   try {
@@ -85,8 +144,8 @@ app.get('/api/test-key', async (req, res) => {
   }
 });
 
-// Upload audio file endpoint
-app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
+// Upload audio file endpoint (requires auth)
+app.post('/api/transcribe/upload', authMiddleware, upload.single('audio'), async (req, res) => {
   try {
     console.log('Received audio upload request');
     if (!req.file) {
@@ -94,6 +153,7 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
     }
 
     const { noteMode } = req.body;
+    const userId = req.user.id;
     const filePath = req.file.path;
     const originalName = req.file.originalname || 'recording.webm';
     console.log('File uploaded:', originalName, 'Size:', req.file.size, 'bytes', 'MIME:', req.file.mimetype);
@@ -123,7 +183,7 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
     // Check if it's a custom mode
     if (noteMode && noteMode.startsWith('custom-')) {
       const customModeId = parseInt(noteMode.replace('custom-', ''));
-      const customMode = notesDb.getCustomModeById(customModeId);
+      const customMode = notesDb.getCustomModeById(customModeId, userId);
       if (customMode) {
         customPrompt = customMode.prompt;
       }
@@ -145,6 +205,7 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
 
     // Save note to database (don't save transcript for notes-only mode)
     const noteId = notesDb.saveNote({
+      userId,
       notes,
       transcription: noteMode === 'notes-only' ? null : transcription,
       mode: noteMode || 'detailed'
@@ -195,8 +256,8 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
   }
 });
 
-// Transcribe a smaller audio chunk (for long, continuous recordings)
-app.post('/api/transcribe/chunk', upload.single('audio'), async (req, res) => {
+// Transcribe a smaller audio chunk (for long, continuous recordings) — requires auth
+app.post('/api/transcribe/chunk', authMiddleware, upload.single('audio'), async (req, res) => {
   try {
     console.log('Received audio chunk for transcription');
     if (!req.file) {
@@ -223,10 +284,11 @@ app.post('/api/transcribe/chunk', upload.single('audio'), async (req, res) => {
   }
 });
 
-// Generate notes from an existing transcript (used for long, chunked recordings)
-app.post('/api/transcribe/from-text', async (req, res) => {
+// Generate notes from an existing transcript (used for long, chunked recordings) — requires auth
+app.post('/api/transcribe/from-text', authMiddleware, async (req, res) => {
   try {
     const { transcription, noteMode, hideTranscription } = req.body;
+    const userId = req.user.id;
 
     if (!transcription || !String(transcription).trim()) {
       return res.status(400).json({ error: 'Transcription text is required' });
@@ -238,7 +300,7 @@ app.post('/api/transcribe/from-text', async (req, res) => {
 
     if (noteMode && String(noteMode).startsWith('custom-')) {
       const customModeId = parseInt(String(noteMode).replace('custom-', ''));
-      const customMode = notesDb.getCustomModeById(customModeId);
+      const customMode = notesDb.getCustomModeById(customModeId, userId);
       if (customMode) {
         customPrompt = customMode.prompt;
       }
@@ -250,6 +312,7 @@ app.post('/api/transcribe/from-text', async (req, res) => {
 
     // Save note, optionally hiding the stored transcription
     const noteId = notesDb.saveNote({
+      userId,
       notes,
       transcription: hideTranscription || finalMode === 'notes-only' ? null : transcription,
       mode: finalMode
@@ -280,8 +343,8 @@ app.post('/api/transcribe/from-text', async (req, res) => {
   }
 });
 
-// Live recording endpoint (receives audio chunks)
-app.post('/api/transcribe/live', async (req, res) => {
+// Live recording endpoint (receives audio chunks) — requires auth
+app.post('/api/transcribe/live', authMiddleware, async (req, res) => {
   try {
     const { audioData, noteMode, isFinal } = req.body;
 
@@ -323,10 +386,10 @@ app.post('/api/transcribe/live', async (req, res) => {
   }
 });
 
-// Get available note modes
-app.get('/api/modes', async (req, res) => {
+// Get available note modes (requires auth for user's custom modes)
+app.get('/api/modes', authMiddleware, async (req, res) => {
   try {
-    const customModes = notesDb.getAllCustomModes();
+    const customModes = notesDb.getAllCustomModes(req.user.id);
     const defaultModes = [
       {
         id: 'summary',
@@ -376,30 +439,29 @@ app.get('/api/modes', async (req, res) => {
   }
 });
 
-// Notes API endpoints
-app.post('/api/notes', (req, res) => {
+// Notes API endpoints (all require auth, scoped to user)
+app.post('/api/notes', authMiddleware, (req, res) => {
   try {
-    const noteId = notesDb.saveNote(req.body);
-    res.json({ success: true, noteId, note: notesDb.getNoteById(noteId) });
+    const noteId = notesDb.saveNote({ ...req.body, userId: req.user.id });
+    res.json({ success: true, noteId, note: notesDb.getNoteById(noteId, req.user.id) });
   } catch (error) {
     console.error('Error saving note:', error);
     res.status(500).json({ error: 'Failed to save note', message: error.message });
   }
 });
 
-app.get('/api/notes', (req, res) => {
+app.get('/api/notes', authMiddleware, (req, res) => {
   try {
     const { limit = 50, offset = 0, category, search } = req.query;
-    
+    const userId = req.user.id;
     let notes;
     if (search) {
-      notes = notesDb.searchNotes(search, parseInt(limit));
+      notes = notesDb.searchNotes(search, parseInt(limit), userId);
     } else if (category) {
-      notes = notesDb.getNotesByCategory(category);
+      notes = notesDb.getNotesByCategory(category, userId);
     } else {
-      notes = notesDb.getAllNotes(parseInt(limit), parseInt(offset));
+      notes = notesDb.getAllNotes(parseInt(limit), parseInt(offset), userId);
     }
-    
     res.json({ success: true, notes });
   } catch (error) {
     console.error('Error fetching notes:', error);
@@ -407,13 +469,12 @@ app.get('/api/notes', (req, res) => {
   }
 });
 
-app.get('/api/notes/:id', (req, res) => {
+app.get('/api/notes/:id', authMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id));
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
-    
     const insights = notesDb.getNoteInsights(note.id);
     res.json({ success: true, note, insights });
   } catch (error) {
@@ -422,20 +483,20 @@ app.get('/api/notes/:id', (req, res) => {
   }
 });
 
-app.put('/api/notes/:id', (req, res) => {
+app.put('/api/notes/:id', authMiddleware, (req, res) => {
   try {
-    notesDb.updateNote(parseInt(req.params.id), req.body);
-    const note = notesDb.getNoteById(parseInt(req.params.id));
-    res.json({ success: true, note });
+    const updated = notesDb.updateNote(parseInt(req.params.id), req.body, req.user.id);
+    if (!updated) return res.status(404).json({ error: 'Note not found' });
+    res.json({ success: true, note: notesDb.getNoteById(parseInt(req.params.id), req.user.id) });
   } catch (error) {
     console.error('Error updating note:', error);
     res.status(500).json({ error: 'Failed to update note', message: error.message });
   }
 });
 
-app.delete('/api/notes/:id', (req, res) => {
+app.delete('/api/notes/:id', authMiddleware, (req, res) => {
   try {
-    notesDb.deleteNote(parseInt(req.params.id));
+    notesDb.deleteNote(parseInt(req.params.id), req.user.id);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting note:', error);
@@ -443,11 +504,11 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
-// Note comments endpoints
-app.post('/api/notes/:id/comments', (req, res) => {
+// Note comments endpoints (require auth)
+app.post('/api/notes/:id/comments', authMiddleware, (req, res) => {
   try {
     const noteId = parseInt(req.params.id);
-    const note = notesDb.getNoteById(noteId);
+    const note = notesDb.getNoteById(noteId, req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -475,11 +536,11 @@ app.post('/api/notes/:id/comments', (req, res) => {
   }
 });
 
-app.delete('/api/notes/:id/comments/:commentId', (req, res) => {
+app.delete('/api/notes/:id/comments/:commentId', authMiddleware, (req, res) => {
   try {
     const noteId = parseInt(req.params.id);
     const commentId = parseInt(req.params.commentId);
-    const note = notesDb.getNoteById(noteId);
+    const note = notesDb.getNoteById(noteId, req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -496,20 +557,20 @@ app.delete('/api/notes/:id/comments/:commentId', (req, res) => {
   }
 });
 
-// Custom modes API endpoints
-app.post('/api/custom-modes', (req, res) => {
+// Custom modes API endpoints (require auth, scoped to user)
+app.post('/api/custom-modes', authMiddleware, (req, res) => {
   try {
-    const modeId = notesDb.saveCustomMode(req.body);
-    res.json({ success: true, modeId, mode: notesDb.getCustomModeById(modeId) });
+    const modeId = notesDb.saveCustomMode({ ...req.body, userId: req.user.id });
+    res.json({ success: true, modeId, mode: notesDb.getCustomModeById(modeId, req.user.id) });
   } catch (error) {
     console.error('Error saving custom mode:', error);
     res.status(500).json({ error: 'Failed to save custom mode', message: error.message });
   }
 });
 
-app.get('/api/custom-modes', (req, res) => {
+app.get('/api/custom-modes', authMiddleware, (req, res) => {
   try {
-    const modes = notesDb.getAllCustomModes();
+    const modes = notesDb.getAllCustomModes(req.user.id);
     res.json({ success: true, modes });
   } catch (error) {
     console.error('Error fetching custom modes:', error);
@@ -517,9 +578,9 @@ app.get('/api/custom-modes', (req, res) => {
   }
 });
 
-app.delete('/api/custom-modes/:id', (req, res) => {
+app.delete('/api/custom-modes/:id', authMiddleware, (req, res) => {
   try {
-    notesDb.deleteCustomMode(parseInt(req.params.id));
+    notesDb.deleteCustomMode(parseInt(req.params.id), req.user.id);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting custom mode:', error);
@@ -527,10 +588,10 @@ app.delete('/api/custom-modes/:id', (req, res) => {
   }
 });
 
-// Export endpoints
-app.get('/api/notes/:id/export/:format', (req, res) => {
+// Export endpoints (require auth)
+app.get('/api/notes/:id/export/:format', authMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id));
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -554,10 +615,10 @@ app.get('/api/notes/:id/export/:format', (req, res) => {
   }
 });
 
-// Share note endpoint (creates a shareable link)
-app.post('/api/notes/:id/share', (req, res) => {
+// Share note endpoint (creates a shareable link) — require auth
+app.post('/api/notes/:id/share', authMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id));
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -583,10 +644,10 @@ app.post('/api/notes/:id/share', (req, res) => {
   }
 });
 
-// Email note endpoint
-app.post('/api/notes/:id/email', async (req, res) => {
+// Email note endpoint — require auth
+app.post('/api/notes/:id/email', authMiddleware, async (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id));
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }

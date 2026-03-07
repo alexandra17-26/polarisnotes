@@ -2,6 +2,24 @@
 
 A futuristic, techy AI-powered note-taking web application that can record notes from audio (live recording or file upload) with multiple note-taking modes.
 
+---
+
+## A Note for Phil
+
+> Hi Phil,
+>
+> I created **Polaris Notes**. The domain name I purchased through GoDaddy is **polarisnotes.com**.
+>
+> The web app has six different note modes: **Summary**, **Detailed**, **Bullet Points**, **Action Items**, **Notes Only**, and **Full Transcript**. I also added **Instructions**, plus **Generated Notes** and **Transcript** tabs when you're viewing a note.
+>
+> There are two ways to input audio: **upload** a file or **record** from your device (though I don't believe recording works on a phone yet). There is a **Custom Note Mode** so you can define your own kind of notes the way you want—I'm still working on this feature. You can also add **manual notes** if you're already on the site and need to take notes.
+>
+> I added a **history** so users can access previous notes and **edit**, **copy**, or **export** them as Markdown (.md), plain text (.txt), or PDF. I'm currently working on a main page with **sign in** and **sign up** options.
+>
+> Needless to say, this is still a work in progress and I have a lot to do, change, and tinker with—but that's what I have so far. I'm hoping to make it good enough to use at UATX. Thank you for all of your help!
+
+---
+
 ## Features
 
 - 🎤 **Live Audio Recording** - Record audio directly in the browser
@@ -219,7 +237,7 @@ The backend uses file system storage (JSON files), which requires persistent sto
 **Frontend:** [Your Vercel URL here - e.g., https://polaris-notes.vercel.app]
 **Backend:** [Your Render URL here - e.g., https://polaris-notes-backend.onrender.com]
 
-**Custom Domain:** [Your custom domain here - e.g., https://polarisnotes.com]
+**Custom Domain:** https://polarisnotes.com (purchased via GoDaddy)
 
 ### Testing Instructions
 
@@ -305,7 +323,7 @@ The backend uses file system storage (JSON files), which requires persistent sto
 
 1. **Deployment:** The app is deployed to production with separate backend (Render) and frontend (Vercel) for optimal architecture given the file storage requirements.
 
-2. **Custom Domain:** [If you've connected a custom domain, mention it here and provide the URL]
+2. **Custom Domain:** https://polarisnotes.com (purchased via GoDaddy)
 
 3. **OpenAI API Key:** Required for testing. The key should be set in the Render environment variables for the backend deployment.
 

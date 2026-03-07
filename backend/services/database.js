@@ -61,12 +61,19 @@ const writeInsights = (insights) => {
   fs.writeJsonSync(insightsFile, insights, { spaces: 2 });
 };
 
+// Filter notes by userId (null/undefined userId means legacy note, allowed for backward compat)
+const matchUser = (note, userId) => {
+  if (userId == null) return true;
+  return (note.user_id ?? note.userId) === userId;
+};
+
 export const notesDb = {
-  // Save a new note
+  // Save a new note (userId required for per-user notes)
   saveNote: (noteData) => {
     const notes = readNotes();
     const newNote = {
       id: notes.length > 0 ? Math.max(...notes.map(n => n.id)) + 1 : 1,
+      user_id: noteData.userId ?? noteData.user_id ?? null,
       title: noteData.title || `Note ${new Date().toLocaleString()}`,
       notes: noteData.notes,
       transcription: noteData.transcription || null,
@@ -83,26 +90,30 @@ export const notesDb = {
     return newNote.id;
   },
 
-  // Get all notes
-  getAllNotes: (limit = 50, offset = 0) => {
+  // Get all notes (optional userId to scope to user)
+  getAllNotes: (limit = 50, offset = 0, userId = null) => {
     const notes = readNotes();
-    return notes
+    const filtered = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
+    return filtered
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(offset, offset + limit);
   },
 
-  // Get note by ID
-  getNoteById: (id) => {
+  // Get note by ID (optional userId to ensure ownership)
+  getNoteById: (id, userId = null) => {
     const notes = readNotes();
-    return notes.find(note => note.id === id) || null;
+    const note = notes.find(note => note.id === id) || null;
+    if (!note) return null;
+    if (userId != null && !matchUser(note, userId)) return null;
+    return note;
   },
 
-  // Update note
-  updateNote: (id, updates) => {
+  // Update note (userId optional for ownership check)
+  updateNote: (id, updates, userId = null) => {
     const notes = readNotes();
     const index = notes.findIndex(note => note.id === id);
     if (index === -1) return null;
-    
+    if (userId != null && !matchUser(notes[index], userId)) return null;
     notes[index] = {
       ...notes[index],
       ...updates,
@@ -112,21 +123,23 @@ export const notesDb = {
     return notes[index];
   },
 
-  // Delete note
-  deleteNote: (id) => {
+  // Delete note (userId optional for ownership check)
+  deleteNote: (id, userId = null) => {
     const notes = readNotes();
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    if (userId != null && !matchUser(note, userId)) return;
     const filtered = notes.filter(note => note.id !== id);
     writeNotes(filtered);
-    
-    // Also delete associated insights
     const insights = readInsights();
     const filteredInsights = insights.filter(insight => insight.note_id !== id);
     writeInsights(filteredInsights);
   },
 
-  // Search notes
-  searchNotes: (query, limit = 50) => {
+  // Search notes (optional userId)
+  searchNotes: (query, limit = 50, userId = null) => {
     const notes = readNotes();
+    const byUser = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
     const insights = readInsights();
     const searchTerm = query.toLowerCase();
 
@@ -148,7 +161,7 @@ export const notesDb = {
       return `${topics} ${dates} ${keyPoints} ${actionItems}`.toLowerCase();
     };
 
-    return notes
+    return byUser
       .filter(note => {
         const baseText = [
           note.title || '',
@@ -157,28 +170,28 @@ export const notesDb = {
           Array.isArray(note.tags) ? note.tags.join(' ') : '',
           note.category || ''
         ].join(' ').toLowerCase();
-
         const insightsText = getInsightsText(note.id);
-
         return baseText.includes(searchTerm) || insightsText.includes(searchTerm);
       })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, limit);
   },
 
-  // Get notes by category
-  getNotesByCategory: (category) => {
+  // Get notes by category (optional userId)
+  getNotesByCategory: (category, userId = null) => {
     const notes = readNotes();
-    return notes
+    const filtered = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
+    return filtered
       .filter(note => note.category === category)
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   },
 
-  // Custom modes
+  // Custom modes (optional user_id for per-user modes)
   saveCustomMode: (modeData) => {
     const modes = readCustomModes();
     const newMode = {
       id: modes.length > 0 ? Math.max(...modes.map(m => m.id)) + 1 : 1,
+      user_id: modeData.userId ?? modeData.user_id ?? null,
       name: modeData.name,
       description: modeData.description || null,
       prompt: modeData.prompt,
@@ -190,18 +203,26 @@ export const notesDb = {
     return newMode.id;
   },
 
-  getAllCustomModes: () => {
-    return readCustomModes();
+  getAllCustomModes: (userId = null) => {
+    const modes = readCustomModes();
+    if (userId == null) return modes;
+    return modes.filter(m => (m.user_id ?? m.userId) === userId);
   },
 
-  getCustomModeById: (id) => {
+  getCustomModeById: (id, userId = null) => {
     const modes = readCustomModes();
-    return modes.find(mode => mode.id === id) || null;
+    const mode = modes.find(m => m.id === id) || null;
+    if (!mode) return null;
+    if (userId != null && (mode.user_id ?? mode.userId) !== userId) return null;
+    return mode;
   },
 
-  deleteCustomMode: (id) => {
+  deleteCustomMode: (id, userId = null) => {
     const modes = readCustomModes();
-    const filtered = modes.filter(mode => mode.id !== id);
+    const mode = modes.find(m => m.id === id);
+    if (!mode) return;
+    if (userId != null && (mode.user_id ?? mode.userId) !== userId) return;
+    const filtered = modes.filter(m => m.id !== id);
     writeCustomModes(filtered);
   },
 
