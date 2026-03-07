@@ -3,22 +3,154 @@ import api from '../api';
 import './AudioRecorder.css';
 
 function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProcessingStop, isProcessing }) {
+  const RECOVERY_KEY = 'polaris_live_transcript_backup';
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [hasRecovery, setHasRecovery] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const transcriptRef = useRef('');
+  const chunkQueueRef = useRef([]);
+  const isProcessingChunkRef = useRef(false);
   const timerRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    // On mount, check if there is a previous unfinished recording we can recover
+    try {
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem(RECOVERY_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data && typeof data.transcript === 'string' && data.transcript.trim()) {
+            transcriptRef.current = data.transcript;
+            setHasRecovery(true);
+          } else {
+            window.localStorage.removeItem(RECOVERY_KEY);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Unable to read recovery transcript from storage', e);
+    }
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {
+          // ignore cleanup errors
+        }
+      }
     };
   }, []);
+
+  const saveTranscriptBackup = () => {
+    try {
+      if (typeof window === 'undefined') return;
+      const transcript = transcriptRef.current;
+      if (!transcript || !transcript.trim()) return;
+      const payload = {
+        transcript,
+        noteMode,
+        updatedAt: new Date().toISOString(),
+      };
+      window.localStorage.setItem(RECOVERY_KEY, JSON.stringify(payload));
+      setHasRecovery(true);
+    } catch (e) {
+      console.warn('Unable to save recovery transcript', e);
+    }
+  };
+
+  const clearTranscriptBackup = () => {
+    try {
+      if (typeof window === 'undefined') return;
+      window.localStorage.removeItem(RECOVERY_KEY);
+    } catch (e) {
+      console.warn('Unable to clear recovery transcript', e);
+    } finally {
+      setHasRecovery(false);
+    }
+  };
+
+  const enqueueChunk = (blob) => {
+    if (!blob || blob.size === 0) return;
+    chunkQueueRef.current.push(blob);
+    if (!isProcessingChunkRef.current) {
+      void processNextChunk();
+    }
+  };
+
+  const processNextChunk = async () => {
+    if (chunkQueueRef.current.length === 0) {
+      isProcessingChunkRef.current = false;
+      return;
+    }
+
+    isProcessingChunkRef.current = true;
+    const blob = chunkQueueRef.current.shift();
+
+    try {
+      const mimeType = blob.type || 'audio/webm';
+      const extension = mimeType.includes('webm')
+        ? 'webm'
+        : mimeType.includes('mp4') || mimeType.includes('m4a')
+        ? 'm4a'
+        : mimeType.includes('ogg')
+        ? 'oga'
+        : mimeType.includes('wav')
+        ? 'wav'
+        : 'webm';
+
+      const audioFile = new File([blob], `chunk-${Date.now()}.${extension}`, { type: mimeType });
+      const formData = new FormData();
+      formData.append('audio', audioFile);
+
+      console.log('Sending chunk to server...', audioFile.name, audioFile.size, audioFile.type);
+      const response = await api.post('/api/transcribe/chunk', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const chunkTranscript = response.data?.transcription;
+      if (chunkTranscript && typeof chunkTranscript === 'string') {
+        if (transcriptRef.current) {
+          transcriptRef.current += '\n\n' + chunkTranscript;
+        } else {
+          transcriptRef.current = chunkTranscript;
+        }
+        saveTranscriptBackup();
+      }
+    } catch (error) {
+      console.error('Error transcribing audio chunk:', error);
+      // For chunk errors we log but do not interrupt the entire recording session
+    } finally {
+      if (chunkQueueRef.current.length > 0) {
+        await processNextChunk();
+      } else {
+        isProcessingChunkRef.current = false;
+      }
+    }
+  };
+
+  const waitForAllChunksToFinish = async () => {
+    // Wait until all queued chunks have been sent and processed
+    for (;;) {
+      if (chunkQueueRef.current.length === 0 && !isProcessingChunkRef.current) {
+        break;
+      }
+      // Small delay before checking again
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  };
 
   const startRecording = async () => {
     try {
@@ -40,29 +172,26 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      transcriptRef.current = '';
+      chunkQueueRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
+        if (event.data && event.data.size > 0) {
+          enqueueChunk(event.data);
         }
       };
 
       mediaRecorder.onstop = async () => {
         try {
-          const mimeType = mediaRecorder.mimeType || 'audio/webm';
-          const blob = new Blob(chunksRef.current, { type: mimeType });
-          setAudioBlob(blob);
           stream.getTracks().forEach(track => track.stop());
-          
-          // Convert to a File with proper extension for OpenAI (Safari often uses mp4/m4a)
-          let extension = 'webm';
-          if (mimeType.includes('webm')) extension = 'webm';
-          else if (mimeType.includes('mp4') || mimeType.includes('m4a')) extension = 'm4a';
-          else if (mimeType.includes('ogg')) extension = 'oga';
-          else if (mimeType.includes('wav')) extension = 'wav';
-          const audioFile = new File([blob], `recording.${extension}`, { type: mimeType });
-          console.log('Processing audio file:', audioFile.name, audioFile.type, audioFile.size);
-          await processAudio(audioFile);
+          console.log('Recording stopped, waiting for remaining chunks to finish...');
+          await waitForAllChunksToFinish();
+          console.log('All chunks processed, generating notes from transcript...');
+          const fullTranscript = transcriptRef.current;
+          transcriptRef.current = '';
+          chunkQueueRef.current = [];
+          clearTranscriptBackup();
+          await generateNotesFromTranscript(fullTranscript);
         } catch (error) {
           console.error('Error in onstop handler:', error);
           if (onProcessingStop) {
@@ -71,7 +200,9 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
         }
       };
       
-      mediaRecorder.start();
+      // Use a timeslice so MediaRecorder emits smaller chunks over time.
+      // This allows very long recordings without hitting single-file limits.
+      mediaRecorder.start(60000); // 60s per chunk
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
@@ -183,7 +314,20 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       onNotesGenerated(response.data);
     } catch (error) {
       console.error('Error processing audio:', error);
-      let errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to process audio. Please check your API key and try again.';
+      let errorMessage;
+
+      if (error.response) {
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.message ||
+          'Failed to process audio. Please check your API key and try again.';
+      } else {
+        // Network or CORS error (no response from server)
+        errorMessage =
+          'Unable to reach the Polaris Notes server. This often happens if the backend hosting (Render/Railway/etc.) is asleep, offline, or the API URL is misconfigured. Please check that your backend is running and that the VITE_API_URL environment variable (if used) points to the correct backend URL.';
+      }
+
       // Ensure we always show a string (API sometimes returns an object)
       if (typeof errorMessage === 'object' && errorMessage !== null) {
         errorMessage = errorMessage.message || JSON.stringify(errorMessage);
@@ -191,6 +335,60 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       alert(String(errorMessage));
       if (onProcessingStop) {
         onProcessingStop(); // Reset processing state
+      }
+    }
+  };
+
+  const generateNotesFromTranscript = async (fullTranscript) => {
+    if (!fullTranscript || !fullTranscript.trim()) {
+      alert('Recording finished, but no clear speech was detected to transcribe. Please try again.');
+      if (onProcessingStop) {
+        onProcessingStop();
+      }
+      return;
+    }
+
+    console.log('Generating notes from existing transcript, length:', fullTranscript.length);
+
+    onProcessingStart();
+
+    // Small delay to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    try {
+      const response = await api.post('/api/transcribe/from-text', {
+        transcription: fullTranscript,
+        noteMode,
+        // When using "notes-only" mode we still send the transcript,
+        // but ask the backend not to store or return it.
+        hideTranscription: noteMode === 'notes-only',
+      });
+
+      console.log('Received response from server (from-text)');
+      onNotesGenerated(response.data);
+      clearTranscriptBackup();
+    } catch (error) {
+      console.error('Error generating notes from transcript:', error);
+      let errorMessage;
+
+      if (error.response) {
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.message ||
+          'Failed to generate notes from transcript. Please check your API key and try again.';
+      } else {
+        errorMessage =
+          'Unable to reach the Polaris Notes server while generating notes. Please verify that your backend is running and reachable from the frontend.';
+      }
+
+      if (typeof errorMessage === 'object' && errorMessage !== null) {
+        errorMessage = errorMessage.message || JSON.stringify(errorMessage);
+      }
+      alert(String(errorMessage));
+    } finally {
+      if (onProcessingStop) {
+        onProcessingStop();
       }
     }
   };
@@ -208,6 +406,38 @@ function AudioRecorder({ noteMode, onNotesGenerated, onProcessingStart, onProces
       </h2>
       
       <div className="recorder-container">
+        {hasRecovery && !isRecording && (
+          <div className="recovery-banner">
+            <p>
+              It looks like a previous recording did not finish. You can try to recover notes from it.
+            </p>
+            <div className="recovery-actions">
+              <button
+                className="record-button start"
+                type="button"
+                onClick={() => {
+                  const backup = transcriptRef.current;
+                  if (backup && backup.trim()) {
+                    void generateNotesFromTranscript(backup);
+                  } else {
+                    clearTranscriptBackup();
+                  }
+                }}
+                disabled={isProcessing}
+              >
+                Generate Notes from Last Recording
+              </button>
+              <button
+                className="record-button stop"
+                type="button"
+                onClick={clearTranscriptBackup}
+                disabled={isProcessing}
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
         <div className="recorder-controls">
           {!isRecording ? (
             <button

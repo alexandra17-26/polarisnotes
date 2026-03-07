@@ -68,13 +68,36 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
       console.log(`Generating notes, mode: ${mode} (attempt ${attempt}/${retries})`);
       
       const prompts = {
-        summary: `Create a concise summary of the following transcription. Focus on the main points and key takeaways. Keep it brief and to the point. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
+        summary: `You are taking notes as a focused student who wants to remember what actually matters later (exams, assignments, and decisions).
+Create a concise summary of the following transcription that:
+- Clearly states the main ideas and conclusions
+- Calls out any points the speaker repeats, emphasizes, or labels as important
+- Mentions deadlines, next steps, and anything that sounds like it will "be on the test"
+Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
         
-        detailed: `Create detailed notes from the following transcription. Include context, explanations, and important details. Organize the information logically. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
+        detailed: `You are an excellent student sitting in a class or meeting, writing detailed notes you will study from later.
+From the transcription below, create detailed, well-organized notes that:
+- Follow the flow of the lecture/meeting with clear topic sections
+- Capture key definitions, formulas, examples, and explanations
+- Explicitly highlight concepts the speaker repeats, spends extra time on, or calls "important", "test material", or similar
+- Call out important questions that were answered and any confusions that were clarified
+- Include concrete takeaways, follow-ups, and "things to remember" at the end
+Write in a natural student-note style (not a formal report). Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. For headings, use bold text with **text** format.\n\nTranscription:\n${transcription}`,
         
-        bullet: `Create organized bullet point notes from the following transcription. Structure them clearly with main points and sub-points. Perfect for meeting notes. Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. Use regular bullet points (•) or dashes (-) for lists.\n\nTranscription:\n${transcription}`,
+        bullet: `You are creating meeting or class notes as a student who wants a clean checklist-style review sheet.
+Turn the following transcription into organized bullet point notes that:
+- Use clear main bullets with short sub-bullets where helpful
+- Group information by topic or section
+- Emphasize repeated or strongly stressed points, marking them as important
+- Clearly list any to-dos, deadlines, or assignments
+Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only. Use regular bullet points (•) or dashes (-) for lists.\n\nTranscription:\n${transcription}`,
         
-        'action-items': `Extract and list all action items, tasks, and decisions from the following transcription. Format them clearly with who is responsible (if mentioned) and deadlines (if mentioned). Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only.\n\nTranscription:\n${transcription}`,
+        'action-items': `Extract and list all action items, tasks, decisions, and exam-relevant instructions from the following transcription.
+Format them clearly with:
+- What needs to be done or remembered
+- Who is responsible (if mentioned)
+- Any dates, deadlines, or test/quiz references
+Do NOT use markdown formatting (no #, *, **, or any markdown syntax). Use plain text only.\n\nTranscription:\n${transcription}`,
         
         transcript: transcription
       };
@@ -94,7 +117,7 @@ export async function generateNotes(transcription, mode = 'detailed', retries = 
         messages: [
           {
             role: 'system',
-            content: 'You are an expert note-taking assistant. Create well-structured, clear, and useful notes from transcriptions.'
+            content: 'You are an expert student note-taker. You listen to classes and meetings and turn them into clear, structured notes that are genuinely useful for studying, revising, and following up on important points.'
           },
           {
             role: 'user',

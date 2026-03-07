@@ -195,6 +195,91 @@ app.post('/api/transcribe/upload', upload.single('audio'), async (req, res) => {
   }
 });
 
+// Transcribe a smaller audio chunk (for long, continuous recordings)
+app.post('/api/transcribe/chunk', upload.single('audio'), async (req, res) => {
+  try {
+    console.log('Received audio chunk for transcription');
+    if (!req.file) {
+      return res.status(400).json({ error: 'No audio file provided' });
+    }
+
+    const filePath = req.file.path;
+    console.log('Chunk file uploaded:', req.file.originalname || filePath, 'Size:', req.file.size);
+
+    const transcription = await transcribeAudio(filePath);
+
+    await fs.remove(filePath);
+
+    res.json({
+      success: true,
+      transcription
+    });
+  } catch (error) {
+    console.error('Error transcribing chunk:', error);
+    res.status(500).json({
+      error: 'Failed to transcribe chunk',
+      message: error.message || 'Unknown error while transcribing chunk'
+    });
+  }
+});
+
+// Generate notes from an existing transcript (used for long, chunked recordings)
+app.post('/api/transcribe/from-text', async (req, res) => {
+  try {
+    const { transcription, noteMode, hideTranscription } = req.body;
+
+    if (!transcription || !String(transcription).trim()) {
+      return res.status(400).json({ error: 'Transcription text is required' });
+    }
+
+    console.log('Generating notes from existing transcription, mode:', noteMode);
+
+    let customPrompt = null;
+
+    if (noteMode && String(noteMode).startsWith('custom-')) {
+      const customModeId = parseInt(String(noteMode).replace('custom-', ''));
+      const customMode = notesDb.getCustomModeById(customModeId);
+      if (customMode) {
+        customPrompt = customMode.prompt;
+      }
+    }
+
+    const finalMode = noteMode || 'detailed';
+
+    const notes = await generateNotes(transcription, finalMode, 3, customPrompt);
+
+    // Save note, optionally hiding the stored transcription
+    const noteId = notesDb.saveNote({
+      notes,
+      transcription: hideTranscription || finalMode === 'notes-only' ? null : transcription,
+      mode: finalMode
+    });
+
+    // Generate insights in the background
+    generateInsights(transcription, notes).then(insights => {
+      if (insights) {
+        notesDb.saveNoteInsights(noteId, insights);
+      }
+    }).catch(err => {
+      console.error('Error generating insights (from-text):', err);
+    });
+
+    res.json({
+      success: true,
+      transcription: hideTranscription || finalMode === 'notes-only' ? null : transcription,
+      notes,
+      mode: finalMode,
+      noteId
+    });
+  } catch (error) {
+    console.error('Error generating notes from text:', error);
+    res.status(500).json({
+      error: 'Failed to generate notes from text',
+      message: error.message || 'Unknown error while generating notes from transcription'
+    });
+  }
+});
+
 // Live recording endpoint (receives audio chunks)
 app.post('/api/transcribe/live', async (req, res) => {
   try {
