@@ -157,9 +157,11 @@ MIT
 >
 > There are two ways to input audio: **upload** a file or **record** from your device (though I don't believe recording works on a phone yet). There is a **Custom Note Mode** so you can define your own kind of notes the way you want—I'm still working on this feature. You can also add **manual notes** if you're already on the site and need to take notes.
 >
-> I added a **history** so users can access previous notes and **edit**, **copy**, or **export** them as Markdown (.md), plain text (.txt), or PDF. I'm currently working on a main page with **sign in** and **sign up** options.
+> I added a **history** so users can access previous notes and **edit**, **copy**, or **export** them as Markdown (.md), plain text (.txt), or PDF. I created a **main page** with **sign in** and **sign up** options that works and saves histories across different devices (as long as you're signed into the same account).
 >
-> Needless to say, this is still a work in progress and I have a lot to do, change, and tinker with—but that's what I have so far. I'm hoping to make it good enough to use at UATX. Thank you for all of your help!
+> In addition to the recording button, I also added a **pause** button.
+>
+> Needless to say, this is still a work in progress and I have a lot to do, change, and tinker with—but that's what I have so far. I'm hoping to make it good enough to use at UATX. Thank you for all of your help! :)
 
 ---
 
