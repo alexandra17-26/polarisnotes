@@ -4,22 +4,6 @@ A futuristic, techy AI-powered note-taking web application that can record notes
 
 ---
 
-## A Note for Phil
-
-> Hi Phil,
->
-> I created **Polaris Notes**. The domain name I purchased through GoDaddy is **polarisnotes.com**.
->
-> The web app has six different note modes: **Summary**, **Detailed**, **Bullet Points**, **Action Items**, **Notes Only**, and **Full Transcript**. I also added **Instructions**, plus **Generated Notes** and **Transcript** tabs when you're viewing a note.
->
-> There are two ways to input audio: **upload** a file or **record** from your device (though I don't believe recording works on a phone yet). There is a **Custom Note Mode** so you can define your own kind of notes the way you want—I'm still working on this feature. You can also add **manual notes** if you're already on the site and need to take notes.
->
-> I added a **history** so users can access previous notes and **edit**, **copy**, or **export** them as Markdown (.md), plain text (.txt), or PDF. I'm currently working on a main page with **sign in** and **sign up** options.
->
-> Needless to say, this is still a work in progress and I have a lot to do, change, and tinker with—but that's what I have so far. I'm hoping to make it good enough to use at UATX. Thank you for all of your help!
-
----
-
 ## Features
 
 - 🎤 **Live Audio Recording** - Record audio directly in the browser
@@ -162,6 +146,22 @@ MIT
 ---
 
 ## Phil Notes
+
+### A Note for Phil
+
+> Hi Phil,
+>
+> I created **Polaris Notes**. The domain name I purchased through GoDaddy is **polarisnotes.com**.
+>
+> The web app has six different note modes: **Summary**, **Detailed**, **Bullet Points**, **Action Items**, **Notes Only**, and **Full Transcript**. I also added **Instructions**, plus **Generated Notes** and **Transcript** tabs when you're viewing a note.
+>
+> There are two ways to input audio: **upload** a file or **record** from your device (though I don't believe recording works on a phone yet). There is a **Custom Note Mode** so you can define your own kind of notes the way you want—I'm still working on this feature. You can also add **manual notes** if you're already on the site and need to take notes.
+>
+> I added a **history** so users can access previous notes and **edit**, **copy**, or **export** them as Markdown (.md), plain text (.txt), or PDF. I'm currently working on a main page with **sign in** and **sign up** options.
+>
+> Needless to say, this is still a work in progress and I have a lot to do, change, and tinker with—but that's what I have so far. I'm hoping to make it good enough to use at UATX. Thank you for all of your help!
+
+---
 
 ### Project Overview
 **Polaris Notes** is a full-stack AI-powered note-taking web application that transcribes audio recordings (live or uploaded files) and generates structured notes using OpenAI's Whisper API for transcription and GPT-4 for intelligent note generation. The application features multiple note-taking modes, custom mode creation, persistent note storage, and a modern, elegant user interface.
