@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 import dotenv from 'dotenv';
 import { transcribeAudio, generateNotes, generateInsights } from './services/aiService.js';
 import { notesDb } from './services/database.js';
-import { registerUser, loginUser, authMiddleware, loginOrRegisterGoogleUser } from './services/auth.js';
+import { registerUser, loginUser, authMiddleware, optionalAuthMiddleware, loginOrRegisterGoogleUser } from './services/auth.js';
 import { verifyGoogleIdToken } from './services/googleAuth.js';
 
 dotenv.config();
@@ -144,8 +144,8 @@ app.get('/api/test-key', async (req, res) => {
   }
 });
 
-// Upload audio file endpoint (requires auth)
-app.post('/api/transcribe/upload', authMiddleware, upload.single('audio'), async (req, res) => {
+// Upload audio file endpoint (works with or without auth)
+app.post('/api/transcribe/upload', optionalAuthMiddleware, upload.single('audio'), async (req, res) => {
   try {
     console.log('Received audio upload request');
     if (!req.file) {
@@ -153,7 +153,7 @@ app.post('/api/transcribe/upload', authMiddleware, upload.single('audio'), async
     }
 
     const { noteMode } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id ?? null;
     const filePath = req.file.path;
     const originalName = req.file.originalname || 'recording.webm';
     console.log('File uploaded:', originalName, 'Size:', req.file.size, 'bytes', 'MIME:', req.file.mimetype);
@@ -256,8 +256,8 @@ app.post('/api/transcribe/upload', authMiddleware, upload.single('audio'), async
   }
 });
 
-// Transcribe a smaller audio chunk (for long, continuous recordings) — requires auth
-app.post('/api/transcribe/chunk', authMiddleware, upload.single('audio'), async (req, res) => {
+// Transcribe a smaller audio chunk (for long, continuous recordings) — works with or without auth
+app.post('/api/transcribe/chunk', optionalAuthMiddleware, upload.single('audio'), async (req, res) => {
   try {
     console.log('Received audio chunk for transcription');
     if (!req.file) {
@@ -284,11 +284,11 @@ app.post('/api/transcribe/chunk', authMiddleware, upload.single('audio'), async 
   }
 });
 
-// Generate notes from an existing transcript (used for long, chunked recordings) — requires auth
-app.post('/api/transcribe/from-text', authMiddleware, async (req, res) => {
+// Generate notes from an existing transcript (used for long, chunked recordings) — works with or without auth
+app.post('/api/transcribe/from-text', optionalAuthMiddleware, async (req, res) => {
   try {
     const { transcription, noteMode, hideTranscription } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id ?? null;
 
     if (!transcription || !String(transcription).trim()) {
       return res.status(400).json({ error: 'Transcription text is required' });
@@ -343,8 +343,8 @@ app.post('/api/transcribe/from-text', authMiddleware, async (req, res) => {
   }
 });
 
-// Live recording endpoint (receives audio chunks) — requires auth
-app.post('/api/transcribe/live', authMiddleware, async (req, res) => {
+// Live recording endpoint (receives audio chunks) — works with or without auth
+app.post('/api/transcribe/live', optionalAuthMiddleware, async (req, res) => {
   try {
     const { audioData, noteMode, isFinal } = req.body;
 
@@ -386,10 +386,10 @@ app.post('/api/transcribe/live', authMiddleware, async (req, res) => {
   }
 });
 
-// Get available note modes (requires auth for user's custom modes)
-app.get('/api/modes', authMiddleware, async (req, res) => {
+// Get available note modes (works with or without auth; custom modes scoped to user when logged in)
+app.get('/api/modes', optionalAuthMiddleware, async (req, res) => {
   try {
-    const customModes = notesDb.getAllCustomModes(req.user.id);
+    const customModes = notesDb.getAllCustomModes(req.user?.id ?? null);
     const defaultModes = [
       {
         id: 'summary',
@@ -439,21 +439,22 @@ app.get('/api/modes', authMiddleware, async (req, res) => {
   }
 });
 
-// Notes API endpoints (all require auth, scoped to user)
-app.post('/api/notes', authMiddleware, (req, res) => {
+// Notes API endpoints (work with or without auth; scoped to user when logged in)
+app.post('/api/notes', optionalAuthMiddleware, (req, res) => {
   try {
-    const noteId = notesDb.saveNote({ ...req.body, userId: req.user.id });
-    res.json({ success: true, noteId, note: notesDb.getNoteById(noteId, req.user.id) });
+    const userId = req.user?.id ?? null;
+    const noteId = notesDb.saveNote({ ...req.body, userId });
+    res.json({ success: true, noteId, note: notesDb.getNoteById(noteId, userId) });
   } catch (error) {
     console.error('Error saving note:', error);
     res.status(500).json({ error: 'Failed to save note', message: error.message });
   }
 });
 
-app.get('/api/notes', authMiddleware, (req, res) => {
+app.get('/api/notes', optionalAuthMiddleware, (req, res) => {
   try {
     const { limit = 50, offset = 0, category, search } = req.query;
-    const userId = req.user.id;
+    const userId = req.user?.id ?? null;
     let notes;
     if (search) {
       notes = notesDb.searchNotes(search, parseInt(limit), userId);
@@ -469,9 +470,10 @@ app.get('/api/notes', authMiddleware, (req, res) => {
   }
 });
 
-app.get('/api/notes/:id', authMiddleware, (req, res) => {
+app.get('/api/notes/:id', optionalAuthMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
+    const userId = req.user?.id ?? null;
+    const note = notesDb.getNoteById(parseInt(req.params.id), userId);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -483,20 +485,21 @@ app.get('/api/notes/:id', authMiddleware, (req, res) => {
   }
 });
 
-app.put('/api/notes/:id', authMiddleware, (req, res) => {
+app.put('/api/notes/:id', optionalAuthMiddleware, (req, res) => {
   try {
-    const updated = notesDb.updateNote(parseInt(req.params.id), req.body, req.user.id);
+    const userId = req.user?.id ?? null;
+    const updated = notesDb.updateNote(parseInt(req.params.id), req.body, userId);
     if (!updated) return res.status(404).json({ error: 'Note not found' });
-    res.json({ success: true, note: notesDb.getNoteById(parseInt(req.params.id), req.user.id) });
+    res.json({ success: true, note: notesDb.getNoteById(parseInt(req.params.id), userId) });
   } catch (error) {
     console.error('Error updating note:', error);
     res.status(500).json({ error: 'Failed to update note', message: error.message });
   }
 });
 
-app.delete('/api/notes/:id', authMiddleware, (req, res) => {
+app.delete('/api/notes/:id', optionalAuthMiddleware, (req, res) => {
   try {
-    notesDb.deleteNote(parseInt(req.params.id), req.user.id);
+    notesDb.deleteNote(parseInt(req.params.id), req.user?.id ?? null);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting note:', error);
@@ -504,11 +507,12 @@ app.delete('/api/notes/:id', authMiddleware, (req, res) => {
   }
 });
 
-// Note comments endpoints (require auth)
-app.post('/api/notes/:id/comments', authMiddleware, (req, res) => {
+// Note comments endpoints (work with or without auth)
+app.post('/api/notes/:id/comments', optionalAuthMiddleware, (req, res) => {
   try {
     const noteId = parseInt(req.params.id);
-    const note = notesDb.getNoteById(noteId, req.user.id);
+    const userId = req.user?.id ?? null;
+    const note = notesDb.getNoteById(noteId, userId);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -536,11 +540,12 @@ app.post('/api/notes/:id/comments', authMiddleware, (req, res) => {
   }
 });
 
-app.delete('/api/notes/:id/comments/:commentId', authMiddleware, (req, res) => {
+app.delete('/api/notes/:id/comments/:commentId', optionalAuthMiddleware, (req, res) => {
   try {
     const noteId = parseInt(req.params.id);
     const commentId = parseInt(req.params.commentId);
-    const note = notesDb.getNoteById(noteId, req.user.id);
+    const userId = req.user?.id ?? null;
+    const note = notesDb.getNoteById(noteId, userId);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -557,20 +562,21 @@ app.delete('/api/notes/:id/comments/:commentId', authMiddleware, (req, res) => {
   }
 });
 
-// Custom modes API endpoints (require auth, scoped to user)
-app.post('/api/custom-modes', authMiddleware, (req, res) => {
+// Custom modes API endpoints (work with or without auth; scoped to user when logged in)
+app.post('/api/custom-modes', optionalAuthMiddleware, (req, res) => {
   try {
-    const modeId = notesDb.saveCustomMode({ ...req.body, userId: req.user.id });
-    res.json({ success: true, modeId, mode: notesDb.getCustomModeById(modeId, req.user.id) });
+    const userId = req.user?.id ?? null;
+    const modeId = notesDb.saveCustomMode({ ...req.body, userId });
+    res.json({ success: true, modeId, mode: notesDb.getCustomModeById(modeId, userId) });
   } catch (error) {
     console.error('Error saving custom mode:', error);
     res.status(500).json({ error: 'Failed to save custom mode', message: error.message });
   }
 });
 
-app.get('/api/custom-modes', authMiddleware, (req, res) => {
+app.get('/api/custom-modes', optionalAuthMiddleware, (req, res) => {
   try {
-    const modes = notesDb.getAllCustomModes(req.user.id);
+    const modes = notesDb.getAllCustomModes(req.user?.id ?? null);
     res.json({ success: true, modes });
   } catch (error) {
     console.error('Error fetching custom modes:', error);
@@ -578,9 +584,9 @@ app.get('/api/custom-modes', authMiddleware, (req, res) => {
   }
 });
 
-app.delete('/api/custom-modes/:id', authMiddleware, (req, res) => {
+app.delete('/api/custom-modes/:id', optionalAuthMiddleware, (req, res) => {
   try {
-    notesDb.deleteCustomMode(parseInt(req.params.id), req.user.id);
+    notesDb.deleteCustomMode(parseInt(req.params.id), req.user?.id ?? null);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting custom mode:', error);
@@ -588,10 +594,10 @@ app.delete('/api/custom-modes/:id', authMiddleware, (req, res) => {
   }
 });
 
-// Export endpoints (require auth)
-app.get('/api/notes/:id/export/:format', authMiddleware, (req, res) => {
+// Export endpoints (work with or without auth)
+app.get('/api/notes/:id/export/:format', optionalAuthMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user?.id ?? null);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -615,10 +621,10 @@ app.get('/api/notes/:id/export/:format', authMiddleware, (req, res) => {
   }
 });
 
-// Share note endpoint (creates a shareable link) — require auth
-app.post('/api/notes/:id/share', authMiddleware, (req, res) => {
+// Share note endpoint (creates a shareable link) — works with or without auth
+app.post('/api/notes/:id/share', optionalAuthMiddleware, (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user?.id ?? null);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -644,10 +650,10 @@ app.post('/api/notes/:id/share', authMiddleware, (req, res) => {
   }
 });
 
-// Email note endpoint — require auth
-app.post('/api/notes/:id/email', authMiddleware, async (req, res) => {
+// Email note endpoint — works with or without auth
+app.post('/api/notes/:id/email', optionalAuthMiddleware, async (req, res) => {
   try {
-    const note = notesDb.getNoteById(parseInt(req.params.id), req.user.id);
+    const note = notesDb.getNoteById(parseInt(req.params.id), req.user?.id ?? null);
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
     }

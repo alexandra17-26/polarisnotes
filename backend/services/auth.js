@@ -102,6 +102,20 @@ export function authMiddleware(req, res, next) {
   next();
 }
 
+/** Same as authMiddleware but does not reject: sets req.user when valid, otherwise req.user = null. Use for routes that work with or without login. */
+export function optionalAuthMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  req.user = null;
+  if (!token) return next();
+  const payload = verifyToken(token);
+  if (!payload) return next();
+  const user = usersDb.findById(payload.userId);
+  if (!user) return next();
+  req.user = { id: user.id, email: user.email, name: user.name };
+  next();
+}
+
 // Google login helper (used after verifying Google ID token)
 export async function loginOrRegisterGoogleUser(googlePayload) {
   const email = (googlePayload?.email || '').trim().toLowerCase();
