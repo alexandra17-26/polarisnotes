@@ -153,7 +153,16 @@ function SignIn() {
           </button>
         </div>
         <form className="signin-form" onSubmit={handleSubmit}>
-          {error && <div className="signin-error">{error}</div>}
+          {error && (
+            <div className="signin-error-block">
+              <div className="signin-error">{error}</div>
+              {error === 'Invalid credentials.' && (
+                <p className="signin-error-hint">
+                  If you signed up on this site before, free hosting may reset accounts when the server restarts. Try <button type="button" className="signin-error-link" onClick={() => { setMode('signup'); setError(''); }}>Sign up</button> to create an account again.
+                </p>
+              )}
+            </div>
+          )}
           {mode === 'signup' && (
             <label className="signin-label">
               Name

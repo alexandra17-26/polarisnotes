@@ -138,6 +138,7 @@ Notetaking AI Program/
 - Audio files are temporarily stored during processing and then deleted
 - The application supports various audio formats (MP3, WAV, M4A, WebM, etc.)
 - For live recording, the browser will request microphone permissions
+- **Free hosting (e.g. Render free tier):** The server’s disk is ephemeral, so user accounts and notes can be reset when the server restarts or redeploys. If you can’t log in, use **Sign up** again to create an account; the sign-in page will show this hint when login fails.
 
 ## License
 
