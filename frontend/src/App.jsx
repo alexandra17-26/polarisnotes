@@ -4,18 +4,28 @@ import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 
-// Default: go straight to the notes app (no main/landing page).
-// Main page saved for later: /landing (Landing) and /signin (SignIn).
-// To restore main page as default: make "/" render <LandingOrRedirect /> again and protect /app with <ProtectedRoute>.
+function LandingOrRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/app" replace />;
+  return <Landing />;
+}
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/app" element={<Dashboard />} />
-      <Route path="/landing" element={<Landing />} />
+      <Route path="/" element={<LandingOrRedirect />} />
       <Route path="/signin" element={<SignIn />} />
+      <Route
+        path="/app"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
