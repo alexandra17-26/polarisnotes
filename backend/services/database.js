@@ -99,6 +99,11 @@ export const notesDb = {
       .slice(offset, offset + limit);
   },
 
+  // Get all notes without scoping (for admin dashboards and reports)
+  getAllNotesForAdmin: () => {
+    return readNotes();
+  },
+
   // Get note by ID (optional userId to ensure ownership)
   getNoteById: (id, userId = null) => {
     const notes = readNotes();

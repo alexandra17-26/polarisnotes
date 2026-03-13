@@ -50,8 +50,9 @@ export function AuthProvider({ children }) {
     api.get('/api/auth/me')
       .then((res) => {
         if (res.data?.user) {
-          setUser(res.data.user);
-          localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+          const nextUser = res.data.user;
+          setUser(nextUser);
+          localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
         }
       })
       .catch(() => {

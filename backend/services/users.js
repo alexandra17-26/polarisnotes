@@ -59,6 +59,11 @@ export const usersDb = {
     return users.find(u => u.id === id) || null;
   },
 
+  // Return all users (for admin dashboards and reports)
+  getAll: () => {
+    return readUsers();
+  },
+
   create: (data) => {
     const users = readUsers();
     const id = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;

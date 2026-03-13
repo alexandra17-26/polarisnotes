@@ -7,7 +7,8 @@ import fs from 'fs-extra';
 import dotenv from 'dotenv';
 import { transcribeAudio, generateNotes, generateInsights } from './services/aiService.js';
 import { notesDb } from './services/database.js';
-import { registerUser, loginUser, authMiddleware, optionalAuthMiddleware, loginOrRegisterGoogleUser } from './services/auth.js';
+import { registerUser, loginUser, authMiddleware, optionalAuthMiddleware, loginOrRegisterGoogleUser, adminMiddleware } from './services/auth.js';
+import { usersDb } from './services/users.js';
 import { verifyGoogleIdToken } from './services/googleAuth.js';
 
 dotenv.config();
@@ -54,6 +55,117 @@ const upload = multer({
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Admin dashboard endpoints (admin-only)
+app.get('/api/admin/summary', adminMiddleware, (req, res) => {
+  try {
+    const users = usersDb.getAll();
+    const notes = notesDb.getAllNotesForAdmin();
+
+    const userCount = users.length;
+    const noteCount = notes.length;
+
+    const now = new Date();
+    const daysBack = 7;
+
+    const notesByDay = {};
+    const usersByDay = {};
+
+    for (let i = 0; i < daysBack; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      notesByDay[key] = 0;
+      usersByDay[key] = 0;
+    }
+
+    notes.forEach((note) => {
+      const day = (note.created_at || '').slice(0, 10);
+      if (notesByDay[day] != null) {
+        notesByDay[day] += 1;
+      }
+    });
+
+    users.forEach((user) => {
+      const day = (user.created_at || '').slice(0, 10);
+      if (usersByDay[day] != null) {
+        usersByDay[day] += 1;
+      }
+    });
+
+    const notesLast7Days = Object.entries(notesByDay)
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([date, count]) => ({ date, count }));
+
+    const usersLast7Days = Object.entries(usersByDay)
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([date, count]) => ({ date, count }));
+
+    const notesPerUser = {};
+    notes.forEach((note) => {
+      const uid = note.user_id ?? note.userId ?? 'unknown';
+      if (!notesPerUser[uid]) notesPerUser[uid] = 0;
+      notesPerUser[uid] += 1;
+    });
+
+    const topUsersByNotes = Object.entries(notesPerUser)
+      .filter(([uid]) => uid !== 'unknown')
+      .map(([uid, count]) => {
+        const user = users.find((u) => u.id === Number(uid));
+        return {
+          userId: Number(uid),
+          email: user?.email || null,
+          name: user?.name || null,
+          noteCount: count,
+        };
+      })
+      .sort((a, b) => b.noteCount - a.noteCount)
+      .slice(0, 5);
+
+    res.json({
+      success: true,
+      data: {
+        userCount,
+        noteCount,
+        notesLast7Days,
+        usersLast7Days,
+        topUsersByNotes,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin summary:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch admin summary' });
+  }
+});
+
+app.get('/api/admin/users', adminMiddleware, (req, res) => {
+  try {
+    const users = usersDb.getAll();
+    const notes = notesDb.getAllNotesForAdmin();
+
+    const notesPerUser = {};
+    notes.forEach((note) => {
+      const uid = note.user_id ?? note.userId ?? null;
+      if (!uid) return;
+      if (!notesPerUser[uid]) notesPerUser[uid] = 0;
+      notesPerUser[uid] += 1;
+    });
+
+    const list = users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      created_at: user.created_at,
+      provider: user.provider || 'password',
+      noteCount: notesPerUser[user.id] || 0,
+    }));
+
+    res.json({ success: true, users: list });
+  } catch (error) {
+    console.error('Error fetching admin users:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch admin users' });
+  }
 });
 
 // Auth endpoints (no auth required)
