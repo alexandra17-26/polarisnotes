@@ -58,9 +58,10 @@ function AdminDashboard() {
         <div className="container">
           <div className="admin-dashboard">
             <div className="admin-header-row">
-              <h1 className="admin-title">Admin Dashboard</h1>
+              <p className="admin-kicker">Owner</p>
+              <h1 className="admin-title">Admin dashboard</h1>
               <p className="admin-subtitle">
-                High-level overview of users, notes, and recent activity.
+                Users, notes, and recent activity — same look as the rest of Polaris Notes.
               </p>
             </div>
 
@@ -80,7 +81,7 @@ function AdminDashboard() {
             {!loading && summary && (
               <>
                 <section className="admin-section">
-                  <h2 className="admin-section-title">Key Metrics</h2>
+                  <h2 className="admin-section-title">Key metrics</h2>
                   <div className="admin-stat-grid">
                     <StatCard label="Total users" value={summary.userCount} />
                     <StatCard label="Total notes" value={summary.noteCount} />
@@ -96,7 +97,7 @@ function AdminDashboard() {
                 </section>
 
                 <section className="admin-section">
-                  <h2 className="admin-section-title">Recent Activity (Last 7 Days)</h2>
+                  <h2 className="admin-section-title">Recent activity (last 7 days)</h2>
                   <div className="admin-activity-grid">
                     <div className="admin-activity-column">
                       <h3 className="admin-activity-title">New users per day</h3>

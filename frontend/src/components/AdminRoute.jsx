@@ -19,7 +19,7 @@ function AdminRoute({ children }) {
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  if (!user.isAdmin) {
+  if (!user?.id || !user.isAdmin) {
     return <Navigate to="/app" replace />;
   }
 

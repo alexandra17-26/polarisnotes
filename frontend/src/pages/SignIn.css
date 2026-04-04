@@ -151,6 +151,34 @@
   letter-spacing: 0.3px;
 }
 
+.signin-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.signin-toggle-password {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  background: none;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--accent-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.signin-toggle-password:hover {
+  color: var(--accent-secondary);
+}
+
 .signin-input {
   padding: 0.75rem 1rem;
   border: 1px solid var(--notebook-line);

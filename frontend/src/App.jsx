@@ -11,7 +11,8 @@ import { useAuth } from './context/AuthContext';
 function LandingOrRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/app" replace />;
+  // Only skip the marketing page when we have a confirmed account (same rule as ProtectedRoute)
+  if (user && user.id != null) return <Navigate to="/app" replace />;
   return <Landing />;
 }
 

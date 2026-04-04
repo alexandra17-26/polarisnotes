@@ -15,7 +15,8 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) {
+  // Require a real account from the server (id), not a broken half-saved object in storage
+  if (!user || user.id == null) {
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 

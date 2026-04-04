@@ -49,10 +49,13 @@ export function AuthProvider({ children }) {
     }
     api.get('/api/auth/me')
       .then((res) => {
-        if (res.data?.user) {
-          const nextUser = res.data.user;
+        const nextUser = res.data?.user;
+        if (nextUser && nextUser.id != null) {
           setUser(nextUser);
           localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+        } else {
+          setToken(null);
+          setUser(null);
         }
       })
       .catch(() => {

@@ -61,11 +61,16 @@ const writeInsights = (insights) => {
   fs.writeJsonSync(insightsFile, insights, { spaces: 2 });
 };
 
-// Filter notes by userId (null/undefined userId means legacy note, allowed for backward compat)
+const noteOwnerId = (note) => note.user_id ?? note.userId ?? null;
+
+// Logged-in: only that user's notes. Logged-out: only notes not tied to an account (guest notes).
 const matchUser = (note, userId) => {
-  if (userId == null) return true;
-  return (note.user_id ?? note.userId) === userId;
+  if (userId != null) return noteOwnerId(note) === userId;
+  return noteOwnerId(note) == null;
 };
+
+// Base list for API: scoped to one user, or to guest-only notes when userId is null
+const notesScoped = (notes, userId) => notes.filter((n) => matchUser(n, userId));
 
 export const notesDb = {
   // Save a new note (userId required for per-user notes)
@@ -93,7 +98,7 @@ export const notesDb = {
   // Get all notes (optional userId to scope to user)
   getAllNotes: (limit = 50, offset = 0, userId = null) => {
     const notes = readNotes();
-    const filtered = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
+    const filtered = notesScoped(notes, userId);
     return filtered
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(offset, offset + limit);
@@ -109,7 +114,7 @@ export const notesDb = {
     const notes = readNotes();
     const note = notes.find(note => note.id === id) || null;
     if (!note) return null;
-    if (userId != null && !matchUser(note, userId)) return null;
+    if (!matchUser(note, userId)) return null;
     return note;
   },
 
@@ -118,7 +123,7 @@ export const notesDb = {
     const notes = readNotes();
     const index = notes.findIndex(note => note.id === id);
     if (index === -1) return null;
-    if (userId != null && !matchUser(notes[index], userId)) return null;
+    if (!matchUser(notes[index], userId)) return null;
     notes[index] = {
       ...notes[index],
       ...updates,
@@ -133,7 +138,7 @@ export const notesDb = {
     const notes = readNotes();
     const note = notes.find(n => n.id === id);
     if (!note) return;
-    if (userId != null && !matchUser(note, userId)) return;
+    if (!matchUser(note, userId)) return;
     const filtered = notes.filter(note => note.id !== id);
     writeNotes(filtered);
     const insights = readInsights();
@@ -144,7 +149,7 @@ export const notesDb = {
   // Search notes (optional userId)
   searchNotes: (query, limit = 50, userId = null) => {
     const notes = readNotes();
-    const byUser = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
+    const byUser = notesScoped(notes, userId);
     const insights = readInsights();
     const searchTerm = query.toLowerCase();
 
@@ -185,7 +190,7 @@ export const notesDb = {
   // Get notes by category (optional userId)
   getNotesByCategory: (category, userId = null) => {
     const notes = readNotes();
-    const filtered = userId != null ? notes.filter(n => matchUser(n, userId)) : notes;
+    const filtered = notesScoped(notes, userId);
     return filtered
       .filter(note => note.category === category)
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

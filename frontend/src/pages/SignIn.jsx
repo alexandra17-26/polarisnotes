@@ -18,6 +18,7 @@ function SignIn() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const googleButtonRef = useRef(null);
   const identifierInputRef = useRef(null);
   const passwordInputRef = useRef(null);
@@ -218,10 +219,21 @@ function SignIn() {
             </label>
           )}
           <label className="signin-label">
-            Password
+            <span className="signin-label-row">
+              Password
+              <button
+                type="button"
+                className="signin-toggle-password"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </span>
             <input
               ref={passwordInputRef}
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               name="password"
               className="signin-input"
               value={password}

@@ -24,12 +24,21 @@ function Header() {
           <p className="tagline">AI-Powered Note-Taking Intelligence</p>
         </div>
         <div className="header-right">
-          {user && (
+          {user?.id != null ? (
             <div className="header-user">
               <span className="header-user-name">{user.name || user.email}</span>
               <button type="button" className="header-signout" onClick={logout}>
                 Sign out
               </button>
+            </div>
+          ) : (
+            <div className="header-auth-links" role="navigation" aria-label="Account">
+              <Link to="/signin" className="header-auth-link">
+                Sign in
+              </Link>
+              <Link to="/signin?signup=1" className="header-auth-link header-auth-link-primary">
+                Create account
+              </Link>
             </div>
           )}
           <div className="header-instructions">
